@@ -1,0 +1,60 @@
+[
+    {
+        "Id": "e94b7a67-4e29-4d77-a8b4-2c4c0b3fdc8e",
+        "Name": "Widget A",
+        "Description": "High-quality widget for various uses.",
+        "Brand": "WidgetCo",
+        "Supplier": "SupplierCo",
+        "ImageURL": "https://example.com/images/widget-a.jpg",
+        "Status": "In Stock",
+        "Barcode": "WIDG-A-001",
+        "ReorderLevel": 20,
+        "Weight": 1.5,
+        "Batches": [
+            {
+                "Id": "ff9f8b2e-5e88-4d0d-aaf3-22a7d2e5b9ab",
+                "Lot": "LOT-001",
+                "Quantity": 50,
+                "PurchasePrice": 5.50,
+                "SellPrice": 12.99,
+                "DateAdded": "2023-01-15T08:00:00Z",
+                "DateUpdated": "2023-01-15T08:00:00Z",
+                "ExpirationDate": "2025-01-15"
+            },
+            {
+                "Id": "a2df12c4-d1e4-4bfa-9d10-8f735cc3d2b5",
+                "Lot": "LOT-002",
+                "Quantity": 100,
+                "PurchasePrice": 5.00,
+                "SellPrice": 11.99,
+                "DateAdded": "2023-02-10T08:00:00Z",
+                "DateUpdated": "2023-02-10T08:00:00Z",
+                "ExpirationDate": "2025-02-10"
+            }
+        ]
+    },
+    {
+        "Id": "4fa7f0be-77c4-42e8-8a63-78df5c1d3a32",
+        "Name": "Gadget B",
+        "Description": "Multi-purpose gadget for home and office use.",
+        "Brand": "GadgetCo",
+        "Supplier": "SupplierX",
+        "ImageURL": "https://example.com/images/gadget-b.jpg",
+        "Status": "Out of Stock",
+        "Barcode": "GADG-B-002",
+        "ReorderLevel": 15,
+        "Weight": 0.75,
+        "Batches": [
+            {
+                "Id": "b1e9f9f1-2d9c-4e2f-88f7-45d8b8f8e1b4",
+                "Lot": "LOT-003",
+                "Quantity": 200,
+                "PurchasePrice": 7.50,
+                "SellPrice": 14.99,
+                "DateAdded": "2023-03-20T08:00:00Z",
+                "DateUpdated": "2023-03-20T08:00:00Z",
+                "ExpirationDate": "2025-03-20"
+            }
+        ]
+    }
+]

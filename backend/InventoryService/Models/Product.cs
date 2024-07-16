@@ -11,21 +11,23 @@ public class Product
     public Guid Id { get; set; }
     [Required]
     [MaxLength(100)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     [MaxLength(500)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
     [MaxLength(50)]
-    public string Brand { get; set; }
+    public string? Brand { get; set; }
     [MaxLength(50)]
-    public string Supplier { get; set; }
+    public string? Supplier { get; set; }
     [MaxLength(200)]
-    public string ImageURL { get; set; }
+    public string? ImageURL { get; set; }
     [MaxLength(50)]
-    public string Status { get; set; }
+    public string? Status { get; set; }
     [MaxLength(20)]
     [Column(TypeName = "varchar(20)")]
-    public string Barcode { get; set; }
-    public int ReorderLevel { get; set; } 
-    public float Weight { get; set; }
+    public string? Barcode { get; set; }
+    public int? ReorderLevel { get; set; } 
+    public float? Weight { get; set; }
+    public DateTime ProductDateAdded { get; set; }
+    public DateTime? ProductDateUpdated { get; set; }
     public List<ProductBatch> Batches { get; set; } = new List<ProductBatch>();
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using InventoryService.Models;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryService.DataAccess;

@@ -3,6 +3,7 @@ using System;
 using InventoryService.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryService.Migrations
 {
     [DbContext(typeof(ProductContext))]
-    partial class ProductContextModelSnapshot : ModelSnapshot
+    [Migration("20240715151904_DatabaseGEnerated")]
+    partial class DatabaseGEnerated
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,9 +50,12 @@ namespace InventoryService.Migrations
                         .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("ProductDateAdded")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("ProductDateUpdated")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
                     b.Property<int?>("ReorderLevel")
@@ -78,12 +84,14 @@ namespace InventoryService.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("BatchDateAdded")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("BatchDateUpdated")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("ExpirationDate")
+                    b.Property<DateTime>("ExpirationDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Lot")
@@ -94,13 +102,13 @@ namespace InventoryService.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("char(36)");
 
-                    b.Property<decimal?>("PurchasePrice")
+                    b.Property<decimal>("PurchasePrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("Quantity")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("SellPrice")
+                    b.Property<decimal>("SellPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");

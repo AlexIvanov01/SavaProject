@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,11 @@ builder.Services.AddDbContext<ProductContext>(options =>
 builder.Services.AddScoped<IProductRepo, ProductRepo>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration).CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -25,6 +31,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseSerilogRequestLogging();
  
 app.UseHttpsRedirection();
 
@@ -34,4 +42,4 @@ app.MapControllers();
 
 PrepDB.PrepPopulation(app);
 
-app.Run();
+await app.RunAsync();

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InventoryService.Models;
 
@@ -8,23 +10,15 @@ public class ProductBatch
     [Key]
     [Required]
     public Guid Id { get; set; }
-    [Required] 
-    public Guid ProductId { get; set;}
     [Required]
     [MaxLength(50)]
-    public string Lot {  get; set; }
-    [Required]
-    public int Quantity { get; set; }
-    [Required]
-    public decimal PurchasePrice { get; set; }
-    [Required]
-    public decimal SellPrice { get; set; }
-    [Required]
-    public DateTime DateAdded { get; set; }
-    [Required]
-    public DateTime DateUpdated { get; set; }
-    [Required]
-    public DateTime ExpirationDate {  get; set; }
-    [Required]
-    public Product Product { get; set; }
+    public string Lot {  get; set; } = string.Empty;
+    public int? Quantity { get; set; }
+    public decimal? PurchasePrice { get; set; }
+    public decimal? SellPrice { get; set; }
+    public DateTime BatchDateAdded { get; set; }
+    public DateTime? BatchDateUpdated { get; set; }
+    public DateTime? ExpirationDate {  get; set; }
+    public Guid ProductId { get; set;}
+    public Product? Product { get; set; }
 }

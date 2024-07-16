@@ -4,8 +4,8 @@ using AutoMapper;
 using InventoryService.DataAccess;
 using InventoryService.Dtos;
 using InventoryService.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace InventoryService.Controllers
 {
@@ -25,40 +25,85 @@ namespace InventoryService.Controllers
         [HttpPost("{ProductId}")]
         public async Task<ActionResult<BatchReadDto>> CreateBatch(BatchCreateDto batchCreateDto, Guid ProductId)
         {
-            Console.WriteLine("--> Creating a batch............");
+            try
+            {
+                Log.Information("--> Creating a batch............");
 
-            var batchModel = _mapper.Map<ProductBatch>(batchCreateDto);
-            batchModel.DateAdded = DateTime.Now;
-            batchModel.DateUpdated = DateTime.Now;
+                var batchModel = _mapper.Map<ProductBatch>(batchCreateDto);
 
-            var productItem = await _repository.AddBatchAsync(batchModel, ProductId);
+                var productItem = await _repository.AddBatchAsync(batchModel, ProductId);
 
-            var productReadDto = _mapper.Map<ProductReadDto>(productItem);
+                if (productItem == null)
+                {
+                    Log.Warning("Product with id {Id} not found.", ProductId);
+                    return NotFound();
+                }
 
-            return CreatedAtRoute(nameof(ProductsController.GetProductById), new { Id = productReadDto.Id }, productReadDto);
+                Log.Information("--> Created batch: {Id}", productItem.Id);
+
+                var productReadDto = _mapper.Map<ProductReadDto>(productItem);
+
+                return CreatedAtRoute(nameof(ProductsController.GetProductById), new { Id = productReadDto.Id }, productReadDto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Internal server error.");
+                return StatusCode(500, "An internal server error occured.");
+            }
         }
 
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> UpdateBatch(Guid Id, BatchUpdateDto productBatchDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBatch(Guid id, BatchUpdateDto productBatchDto)
         {
-            Console.WriteLine("--> Updating batch.............");
+            try
+            {
+                Log.Information("--> Updating batch.............");
 
-            var batchModel = _mapper.Map<ProductBatch>(productBatchDto);
-            batchModel.Id = Id;
+                var batchModel = _mapper.Map<ProductBatch>(productBatchDto);
+                batchModel.Id = id;
 
-            await _repository.UpdateBatchAsync(batchModel);
+                var nullCheck = await _repository.UpdateBatchAsync(batchModel);
 
-            return Ok(_mapper.Map<BatchReadDto>(batchModel));
+                if(nullCheck == null)
+                {
+                    Log.Warning("Batch with id {Id} not found.", id);
+                    return NotFound();
+                }
+
+                Log.Information("--> Batch uptated: {Id}", id);
+
+                return Ok(_mapper.Map<BatchReadDto>(batchModel));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Internal server error.");
+                return StatusCode(500, "An internal server error occured.");
+            }
         }
 
-        [HttpDelete("{Id}")]
-        public async Task<ActionResult> DeleteBatch (Guid Id)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteBatch (Guid id)
         {
-            Console.WriteLine("--> Deleting a product...........");
+            try
+            {
+                Log.Information("--> Deleting a batch...........");
 
-            await _repository.DeleteBatchAsync(Id);
+                var nullCHeck = await _repository.DeleteBatchAsync(id);
+                if(nullCHeck == null)
+                {
+                    Log.Warning("Product with id {Id} not found.", id);
+                    return NotFound();
+                }
 
-            return NoContent();
+                Log.Information("--> Batch with id {Id} deleted", id);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Internal server error.");
+                return StatusCode(500, "An internal server error occured.");
+            }
         }
     }
 }

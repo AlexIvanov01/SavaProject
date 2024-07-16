@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using InventoryService.Dtos;
 using InventoryService.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,96 +17,147 @@ public class ProductRepo : IProductRepo
 
     public async Task CreateProductAsync(Product product)
     {
+        product.ProductDateAdded = DateTime.Now;
         await _context.Products.AddAsync(product);
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteProductAsync(Guid id)
+    public async Task<Product>? DeleteProductAsync(Guid id)
     {
         var dbProduct = await _context.Products
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+            .SingleOrDefaultAsync(x => x.Id == id);
 
-        ArgumentNullException.ThrowIfNull(dbProduct);
+        if(dbProduct == null)
+        {
+            return null;
+        }
 
         _context.Products.Attach(dbProduct);
         _context.Products.Remove(dbProduct);
 
         await _context.SaveChangesAsync();
+
+        return dbProduct;
     }
 
-    public async Task DeleteBatchAsync(Guid id)
+    public async Task<ProductBatch>? DeleteBatchAsync(Guid id)
     {
         var dbBatch = await _context.ProductBatches
             .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == id);
+            .SingleOrDefaultAsync(b => b.Id == id);
 
-        ArgumentNullException.ThrowIfNull(dbBatch);
+        if (dbBatch == null)
+        {
+            return null;
+        }
 
+        _context.ProductBatches.Attach(dbBatch);
         _context.ProductBatches.Remove(dbBatch);
+
         await _context.SaveChangesAsync();
+
+        return dbBatch;
     }
 
-    public async Task<IEnumerable<Product>> GetAllProductsAsync()
+    public async Task<IEnumerable<Product>>? GetAllProductsAsync()
     {
-        return await _context.Products
+            return await _context.Products
+                .AsNoTracking()
+                .Include(a => a.Batches)
+                .ToListAsync();
+    }
+
+    public async Task<Product>? GetProductAsync(Guid id)
+    {
+        var product = await _context.Products
+            .AsNoTracking()
             .Include(a => a.Batches)
-            .ToListAsync();
+            .SingleOrDefaultAsync(p => p.Id == id);
+
+        return product;
     }
 
-    public async Task<Product> GetProductAsync(Guid id)
+    public async Task<Product>? GetProductOnlyAsync(Guid id)
     {
-        return await _context.Products
-            .Include(a => a.Batches)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var product = await _context.Products
+            .AsNoTracking()
+            .SingleOrDefaultAsync(p => p.Id == id);
+
+        return product;
     }
 
-    public async Task<Product> GetProductOnlyAsync(Guid id)
-    {
-        return await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == id);
-    }
-
-    public async Task UpdateProductAsync(Product product)
+    public async Task<Product>? UpdateProductAsync(Product product)
     {
         var DbProduct = await _context.Products
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == product.Id);
+            .SingleOrDefaultAsync(p => p.Id == product.Id);
 
-        ArgumentNullException.ThrowIfNull(DbProduct);
+        if(DbProduct == null)
+        {
+            return null;
+        }
 
         DbProduct = product;
-
         _context.Entry(DbProduct).State = EntityState.Modified;
+        DbProduct.ProductDateUpdated = DateTime.Now;
+
+        foreach (var property in _context.Entry(DbProduct).Properties)
+        {
+            if (property.CurrentValue == null)
+            {
+                property.IsModified = false;
+            }
+        }
+        _context.Entry(DbProduct).Property(p => p.Id).IsModified = false;
+        _context.Entry(DbProduct).Property(p => p.ProductDateAdded).IsModified = false;
 
         await _context.SaveChangesAsync();
+
+        return DbProduct;
     }
 
-    public async Task UpdateBatchAsync(ProductBatch batch)
+    public async Task<ProductBatch>? UpdateBatchAsync(ProductBatch batch)
     {
         var DbBatch = await _context.ProductBatches
             .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == batch.Id);
+            .SingleOrDefaultAsync(b => b.Id == batch.Id);
 
-        ArgumentNullException.ThrowIfNull(DbBatch);
+        if( DbBatch == null)
+        {
+            return null;
+        }
 
         DbBatch = batch;
-
         _context.Entry(DbBatch).State = EntityState.Modified;
+        DbBatch.BatchDateUpdated = DateTime.Now;
+
+        foreach (var property in _context.Entry(DbBatch).Properties)
+        {
+            if (property.CurrentValue == null)
+
+            {
+                property.IsModified = false;
+            }
+        }
+
         _context.Entry(DbBatch).Property(p => p.ProductId).IsModified = false;
-        _context.Entry(DbBatch).Property(p => p.DateAdded).IsModified = false;
-        _context.Entry(DbBatch).Property(p => p.DateUpdated).IsModified = false;
+        _context.Entry(DbBatch).Property(p => p.BatchDateAdded).IsModified = false;
 
         await _context.SaveChangesAsync();
+        return DbBatch;
     }
 
-    public async Task<Product> AddBatchAsync(ProductBatch batch, Guid ProductId)
+    public async Task<Product>? AddBatchAsync(ProductBatch batch, Guid ProductId)
     {
         var product = await _context.Products
             .Include(a => a.Batches)
-            .FirstOrDefaultAsync(p => p.Id == ProductId);
+            .SingleOrDefaultAsync(p => p.Id == ProductId);
 
-        ArgumentNullException.ThrowIfNull(product);
+        if (product == null)
+        {
+            return null;
+        }
 
         product.Batches.Add(batch);
 

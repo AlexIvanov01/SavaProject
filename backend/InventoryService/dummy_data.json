@@ -10,6 +10,8 @@
         "Barcode": "WIDG-A-001",
         "ReorderLevel": 20,
         "Weight": 1.5,
+        "ProductDateAdded": "2023-07-15T08:00:00Z",
+        "ProductDateUpdated": "2023-07-15T08:00:00Z",
         "Batches": [
             {
                 "Id": "ff9f8b2e-5e88-4d0d-aaf3-22a7d2e5b9ab",
@@ -17,8 +19,8 @@
                 "Quantity": 50,
                 "PurchasePrice": 5.50,
                 "SellPrice": 12.99,
-                "DateAdded": "2023-01-15T08:00:00Z",
-                "DateUpdated": "2023-01-15T08:00:00Z",
+                "BatchDateAdded": "2023-07-15T08:00:00Z",
+                "BatchDateUpdated": "2023-07-15T08:00:00Z",
                 "ExpirationDate": "2025-01-15"
             },
             {
@@ -27,8 +29,8 @@
                 "Quantity": 100,
                 "PurchasePrice": 5.00,
                 "SellPrice": 11.99,
-                "DateAdded": "2023-02-10T08:00:00Z",
-                "DateUpdated": "2023-02-10T08:00:00Z",
+                "BatchDateAdded": "2023-07-15T08:00:00Z",
+                "BatchDateUpdated": "2023-07-15T08:00:00Z",
                 "ExpirationDate": "2025-02-10"
             }
         ]
@@ -44,6 +46,8 @@
         "Barcode": "GADG-B-002",
         "ReorderLevel": 15,
         "Weight": 0.75,
+        "ProductDateAdded": "2023-07-15T08:00:00Z",
+        "ProductDateUpdated": "2023-07-15T08:00:00Z",
         "Batches": [
             {
                 "Id": "b1e9f9f1-2d9c-4e2f-88f7-45d8b8f8e1b4",
@@ -51,8 +55,8 @@
                 "Quantity": 200,
                 "PurchasePrice": 7.50,
                 "SellPrice": 14.99,
-                "DateAdded": "2023-03-20T08:00:00Z",
-                "DateUpdated": "2023-03-20T08:00:00Z",
+                "BatchDateAdded": "2023-07-15T08:00:00Z",
+                "BatchDateUpdated": "2023-07-15T08:00:00Z",
                 "ExpirationDate": "2025-03-20"
             }
         ]

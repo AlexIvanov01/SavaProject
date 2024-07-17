@@ -1,0 +1,47 @@
+[
+    {
+        "Id": "d3b4aeba-84e4-4fa8-b926-d2e4b3a8e7f4",
+        "Name": "John Doe",
+        "CompanyName": "Doe Enterprises",
+        "Email": "john.doe@example.com",
+        "PhoneNumber": "123-456-7890",
+        "Address": "123 Main St",
+        "City": "Springfield",
+        "Country": "USA",
+        "BankName": "Bank of America",
+        "IBAN": "US12345678901234567890",
+        "BIC": "BOFAUS3N",
+        "VATNumber": "US123456789",
+        "UIC": "123456789"
+    },
+    {
+        "Id": "e4c5a3be-74a8-4bdb-9577-e1f3b4d7f7a5",
+        "Name": "Jane Smith",
+        "CompanyName": "Smith Solutions",
+        "Email": "jane.smith@example.com",
+        "PhoneNumber": "987-654-3210",
+        "Address": "456 Elm St",
+        "City": "Metropolis",
+        "Country": "USA",
+        "BankName": "Chase Bank",
+        "IBAN": "US09876543210987654321",
+        "BIC": "CHASUS33",
+        "VATNumber": "US987654321",
+        "UIC": "987654321"
+    },
+    {
+        "Id": "f5d6c4bf-65a7-4ccc-8688-f2e6b5c8f8b6",
+        "Name": "Alice Johnson",
+        "CompanyName": "Johnson Consulting",
+        "Email": "alice.johnson@example.com",
+        "PhoneNumber": "456-789-0123",
+        "Address": "789 Pine St",
+        "City": "Gotham",
+        "Country": "USA",
+        "BankName": "Wells Fargo",
+        "IBAN": "US23456789012345678901",
+        "BIC": "WFBIUS6S",
+        "VATNumber": "US234567890",
+        "UIC": "234567890"
+    }
+]

@@ -5,6 +5,7 @@ using InventoryService.Models;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace InventoryService.DataAccess;
 
@@ -22,7 +23,7 @@ public static class PrepDB
     {
         if (!context.Products.Any())
         {
-            Console.WriteLine("--> Seeding data...");
+            Log.Information("--> Seeding data...");
             string file = System.IO.File.ReadAllText("dummy_data.json");
             var people = JsonSerializer.Deserialize<List<Product>>(file);
             context.Products.AddRange(people);
@@ -30,7 +31,7 @@ public static class PrepDB
         }
         else
         {
-            Console.WriteLine("--> Data is already present");
+            Log.Information("--> Data is already present");
         }
     }
 }

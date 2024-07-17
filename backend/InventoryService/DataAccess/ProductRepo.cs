@@ -28,9 +28,11 @@ public class ProductRepo : IProductRepo
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == id);
 
-        if(dbProduct == null)
+        if (dbProduct == null)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return null;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         _context.Products.Attach(dbProduct);
@@ -49,7 +51,9 @@ public class ProductRepo : IProductRepo
 
         if (dbBatch == null)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return null;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         _context.ProductBatches.Attach(dbBatch);
@@ -60,12 +64,12 @@ public class ProductRepo : IProductRepo
         return dbBatch;
     }
 
-    public async Task<IEnumerable<Product>>? GetAllProductsAsync()
+    public async Task<IEnumerable<Product>> GetAllProductsAsync()
     {
-            return await _context.Products
-                .AsNoTracking()
-                .Include(a => a.Batches)
-                .ToListAsync();
+        return await _context.Products
+            .AsNoTracking()
+            .Include(a => a.Batches)
+            .ToListAsync();
     }
 
     public async Task<Product>? GetProductAsync(Guid id)
@@ -75,7 +79,9 @@ public class ProductRepo : IProductRepo
             .Include(a => a.Batches)
             .SingleOrDefaultAsync(p => p.Id == id);
 
+#pragma warning disable CS8603 // Possible null reference return.
         return product;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     public async Task<Product>? GetProductOnlyAsync(Guid id)
@@ -84,7 +90,9 @@ public class ProductRepo : IProductRepo
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == id);
 
+#pragma warning disable CS8603 // Possible null reference return.
         return product;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     public async Task<Product>? UpdateProductAsync(Product product)
@@ -93,9 +101,11 @@ public class ProductRepo : IProductRepo
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == product.Id);
 
-        if(DbProduct == null)
+        if (DbProduct == null)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return null;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         DbProduct = product;
@@ -123,9 +133,11 @@ public class ProductRepo : IProductRepo
             .AsNoTracking()
             .SingleOrDefaultAsync(b => b.Id == batch.Id);
 
-        if( DbBatch == null)
+        if (DbBatch == null)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return null;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         DbBatch = batch;
@@ -156,7 +168,9 @@ public class ProductRepo : IProductRepo
 
         if (product == null)
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return null;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         product.Batches.Add(batch);

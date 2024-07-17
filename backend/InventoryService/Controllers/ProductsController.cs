@@ -46,7 +46,8 @@ public class ProductsController : ControllerBase
             Log.Fatal(ex, "Internal server error.");
             return StatusCode(500, "An internal server error occured.");
         }
-        }
+    }
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
     [HttpGet("{id}", Name = "GetProductById")]
     public async Task<ActionResult<ProductReadDto>> GetProductById(Guid id)
@@ -95,9 +96,9 @@ public class ProductsController : ControllerBase
             return StatusCode(500, "An internal server error occured.");
         }
     }
-    
+
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProduct (Guid id, ProductUpdateDto productUpdateDto)
+    public async Task<IActionResult> UpdateProduct(Guid id, ProductUpdateDto productUpdateDto)
     {
         try
         {
@@ -110,11 +111,11 @@ public class ProductsController : ControllerBase
 
             if (nullCHeck == null)
             {
-                Log.Warning("Product with id {Id} not found.", id);
+                Log.Warning("Product with id {Id} not found for updating.", id);
                 return NotFound();
             }
 
-            Log.Information("--> Product with id {Id} updated",id);
+            Log.Information("--> Product with id {Id} updated", id);
 
             return Ok(_mapper.Map<ProductReadDto>(productModel));
         }
@@ -125,8 +126,9 @@ public class ProductsController : ControllerBase
         }
     }
 
+
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct (Guid id)
+    public async Task<IActionResult> DeleteProduct(Guid id)
     {
         try
         {
@@ -134,9 +136,10 @@ public class ProductsController : ControllerBase
 
             var nullCheck = await _repository.DeleteProductAsync(id);
 
+
             if (nullCheck == null)
             {
-                Log.Warning("Product with id {Id} not found.", id);
+                Log.Warning("Product with id {Id} not found for deleting.", id);
                 return NotFound();
             }
 
@@ -150,4 +153,5 @@ public class ProductsController : ControllerBase
             return StatusCode(500, "An internal server error occured.");
         }
     }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 }

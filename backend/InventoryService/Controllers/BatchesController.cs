@@ -22,6 +22,7 @@ namespace InventoryService.Controllers
             _mapper = mapper;
         }
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         [HttpPost("{ProductId}")]
         public async Task<ActionResult<BatchReadDto>> CreateBatch(BatchCreateDto batchCreateDto, Guid ProductId)
         {
@@ -64,9 +65,9 @@ namespace InventoryService.Controllers
 
                 var nullCheck = await _repository.UpdateBatchAsync(batchModel);
 
-                if(nullCheck == null)
+                if (nullCheck == null)
                 {
-                    Log.Warning("Batch with id {Id} not found.", id);
+                    Log.Warning("Batch with id {Id} not found for updating.", id);
                     return NotFound();
                 }
 
@@ -82,16 +83,16 @@ namespace InventoryService.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteBatch (Guid id)
+        public async Task<ActionResult> DeleteBatch(Guid id)
         {
             try
             {
                 Log.Information("--> Deleting a batch...........");
 
                 var nullCHeck = await _repository.DeleteBatchAsync(id);
-                if(nullCHeck == null)
+                if (nullCHeck == null)
                 {
-                    Log.Warning("Product with id {Id} not found.", id);
+                    Log.Warning("Product with id {Id} not found for deleting.", id);
                     return NotFound();
                 }
 
@@ -105,5 +106,6 @@ namespace InventoryService.Controllers
                 return StatusCode(500, "An internal server error occured.");
             }
         }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 }

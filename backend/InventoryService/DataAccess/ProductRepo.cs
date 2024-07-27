@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using InventoryService.Models;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,7 @@ public class ProductRepo : IProductRepo
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Product>? DeleteProductAsync(Guid id)
+    public async Task<Product?> DeleteProductAsync(Guid id)
     {
         var dbProduct = await _context.Products
             .AsNoTracking()
@@ -30,9 +31,7 @@ public class ProductRepo : IProductRepo
 
         if (dbProduct == null)
         {
-#pragma warning disable CS8603 // Possible null reference return.
             return null;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
         _context.Products.Attach(dbProduct);
@@ -43,7 +42,7 @@ public class ProductRepo : IProductRepo
         return dbProduct;
     }
 
-    public async Task<ProductBatch>? DeleteBatchAsync(Guid id)
+    public async Task<ProductBatch?> DeleteBatchAsync(Guid id)
     {
         var dbBatch = await _context.ProductBatches
             .AsNoTracking()
@@ -51,9 +50,7 @@ public class ProductRepo : IProductRepo
 
         if (dbBatch == null)
         {
-#pragma warning disable CS8603 // Possible null reference return.
             return null;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
         _context.ProductBatches.Attach(dbBatch);
@@ -64,38 +61,36 @@ public class ProductRepo : IProductRepo
         return dbBatch;
     }
 
-    public async Task<IEnumerable<Product>> GetAllProductsAsync()
+    public async Task<IEnumerable<Product>> GetAllProductsAsync(int page, int pageItems)
     {
         return await _context.Products
             .AsNoTracking()
             .Include(a => a.Batches)
+            .Skip((page - 1) * 2)
+            .Take(pageItems)
             .ToListAsync();
     }
 
-    public async Task<Product>? GetProductAsync(Guid id)
+    public async Task<Product?> GetProductAsync(Guid id)
     {
         var product = await _context.Products
             .AsNoTracking()
             .Include(a => a.Batches)
             .SingleOrDefaultAsync(p => p.Id == id);
 
-#pragma warning disable CS8603 // Possible null reference return.
         return product;
-#pragma warning restore CS8603 // Possible null reference return.
     }
 
-    public async Task<Product>? GetProductOnlyAsync(Guid id)
+    public async Task<Product?> GetProductOnlyAsync(Guid id)
     {
         var product = await _context.Products
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == id);
 
-#pragma warning disable CS8603 // Possible null reference return.
         return product;
-#pragma warning restore CS8603 // Possible null reference return.
     }
 
-    public async Task<Product>? UpdateProductAsync(Product product)
+    public async Task<Product?> UpdateProductAsync(Product product)
     {
         var DbProduct = await _context.Products
             .AsNoTracking()
@@ -103,9 +98,7 @@ public class ProductRepo : IProductRepo
 
         if (DbProduct == null)
         {
-#pragma warning disable CS8603 // Possible null reference return.
             return null;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
         DbProduct = product;
@@ -127,7 +120,7 @@ public class ProductRepo : IProductRepo
         return DbProduct;
     }
 
-    public async Task<ProductBatch>? UpdateBatchAsync(ProductBatch batch)
+    public async Task<ProductBatch?> UpdateBatchAsync(ProductBatch batch)
     {
         var DbBatch = await _context.ProductBatches
             .AsNoTracking()
@@ -135,9 +128,7 @@ public class ProductRepo : IProductRepo
 
         if (DbBatch == null)
         {
-#pragma warning disable CS8603 // Possible null reference return.
             return null;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
         DbBatch = batch;
@@ -160,7 +151,7 @@ public class ProductRepo : IProductRepo
         return DbBatch;
     }
 
-    public async Task<Product>? AddBatchAsync(ProductBatch batch, Guid ProductId)
+    public async Task<Product?> AddBatchAsync(ProductBatch batch, Guid ProductId)
     {
         var product = await _context.Products
             .Include(a => a.Batches)
@@ -168,9 +159,7 @@ public class ProductRepo : IProductRepo
 
         if (product == null)
         {
-#pragma warning disable CS8603 // Possible null reference return.
             return null;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
         product.Batches.Add(batch);
@@ -178,5 +167,10 @@ public class ProductRepo : IProductRepo
         await _context.SaveChangesAsync();
 
         return product;
+    }
+
+    public async Task<int> GetAllProductsCountAsync()
+    {
+       return await _context.Products.CountAsync();
     }
 }

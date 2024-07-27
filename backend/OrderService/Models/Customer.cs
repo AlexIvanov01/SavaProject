@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CustomerService.Models;
+namespace OrderService.Models;
 
 public class Customer
 {
@@ -43,4 +43,5 @@ public class Customer
 
     [MaxLength(20)]
     public string? UIC { get; set; }
+    public List<Order> Orders { get; set; } = new List<Order>();
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using InventoryService.DataAccess;
@@ -24,22 +26,36 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProducts([Range(1,100)] int page = 1)
     {
         try
         {
-            Log.Information("--> Getting all products.........");
+            Log.Information("--> Getting all products from page {Page}.........", page);
 
-            var productItems = await _repository.GetAllProductsAsync();
+            int pageItems = 2;
 
-            Log.Information("--> Fetched all products from database.");
+            var productItems = await _repository.GetAllProductsAsync(page, pageItems);
 
-            return Ok(_mapper.Map<IEnumerable<ProductReadDto>>(productItems));
-        }
-        catch (ArgumentNullException ex)
-        {
-            Log.Warning(ex, "--> No products present in the database.");
-            return NoContent();
+            if(!productItems.Any())
+            {
+                Log.Warning("--> No products found in database.");
+                return NotFound();
+            }
+
+            Log.Information("--> Fetched all products from database for page {Page}.", page);
+
+            var dtos = _mapper.Map<IEnumerable<ProductReadDto>>(productItems);
+
+            var pageCount = Math.Ceiling(await _repository.GetAllProductsCountAsync() / (float)pageItems);
+
+            ProductPageReadDto productPageRead = new()
+            {
+                ProductReadDtos = dtos,
+                CurrentPage = page,
+                Pages = (int)pageCount
+            };
+
+            return Ok(productPageRead);
         }
         catch (Exception ex)
         {
@@ -47,7 +63,6 @@ public class ProductsController : ControllerBase
             return StatusCode(500, "An internal server error occured.");
         }
     }
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
     [HttpGet("{id}", Name = "GetProductById")]
     public async Task<ActionResult<ProductReadDto>> GetProductById(Guid id)
@@ -153,5 +168,4 @@ public class ProductsController : ControllerBase
             return StatusCode(500, "An internal server error occured.");
         }
     }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
 }

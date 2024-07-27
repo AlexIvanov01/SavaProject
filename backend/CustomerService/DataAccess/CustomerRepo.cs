@@ -25,7 +25,9 @@ namespace CustomerService.DataAccess
 
             if (dbCustomer == null)
             {
+#pragma warning disable CS8603 // Possible null reference return.
                 return null;
+#pragma warning restore CS8603 // Possible null reference return.
             }
 
             _context.Customers.Attach(dbCustomer);
@@ -45,11 +47,13 @@ namespace CustomerService.DataAccess
 
         public async Task<Customer>? GetCustomerAsync(Guid id)
         {
-            var product = await _context.Customers
+            var customer = await _context.Customers
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == id);
 
-            return product;
+#pragma warning disable CS8603 // Possible null reference return.
+            return customer;
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         public async Task<Customer>? UpdateCustomerAsync(Customer customer)
@@ -60,7 +64,9 @@ namespace CustomerService.DataAccess
 
             if (dbCustomer == null)
             {
+#pragma warning disable CS8603 // Possible null reference return.
                 return null;
+#pragma warning restore CS8603 // Possible null reference return.
             }
 
             dbCustomer = customer;

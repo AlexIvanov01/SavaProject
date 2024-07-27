@@ -21,8 +21,7 @@ namespace InventoryService.Controllers
             _repository = repository;
             _mapper = mapper;
         }
-
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        
         [HttpPost("{ProductId}")]
         public async Task<ActionResult<BatchReadDto>> CreateBatch(BatchCreateDto batchCreateDto, Guid ProductId)
         {
@@ -106,6 +105,5 @@ namespace InventoryService.Controllers
                 return StatusCode(500, "An internal server error occured.");
             }
         }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 }

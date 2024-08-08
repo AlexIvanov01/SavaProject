@@ -18,7 +18,7 @@ public class OrderContext : DbContext
     {
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Order)
-            .WithOne(o => o.Invocie)
+            .WithOne(o => o.Invoice)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Order>()

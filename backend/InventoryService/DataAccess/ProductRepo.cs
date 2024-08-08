@@ -61,13 +61,23 @@ public class ProductRepo : IProductRepo
         return dbBatch;
     }
 
-    public async Task<IEnumerable<Product>> GetAllProductsAsync(int page, int pageItems)
+    public async Task<IEnumerable<Product>> GetAllProductsAsync(Guid? cursor, int pageSize)
     {
+        if (cursor != null)
+        {
+            return await _context.Products
+                .AsNoTracking()
+                .Include(a => a.Batches)
+                .Where(p => p.Id > cursor)
+                .Take(pageSize)
+                .OrderBy(p => p.Id)
+                .ToListAsync();
+        }
         return await _context.Products
             .AsNoTracking()
             .Include(a => a.Batches)
-            .Skip((page - 1) * 2)
-            .Take(pageItems)
+            .OrderBy(p => p.Id)
+            .Take(pageSize)
             .ToListAsync();
     }
 

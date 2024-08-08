@@ -15,5 +15,6 @@ public class OrderProfiles : Profile
 
         CreateMap<OrderCreateDto, Order>();
         CreateMap<OrderItemCreateDto, OrderItem>();
+        CreateMap<OrderUpdateDto, Order>();
     }
 }

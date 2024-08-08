@@ -8,7 +8,7 @@ namespace InventoryService.DataAccess;
 public interface IProductRepo
 {
     Task<int> GetAllProductsCountAsync();
-    Task<IEnumerable<Product>> GetAllProductsAsync(int page, int pageItems);
+    Task<IEnumerable<Product>> GetAllProductsAsync(Guid? cursor, int pageSize);
     Task<Product?> GetProductAsync(Guid id);
     Task<Product?> GetProductOnlyAsync(Guid id);
     Task CreateProductAsync(Product product);

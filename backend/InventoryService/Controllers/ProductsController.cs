@@ -26,36 +26,36 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProducts([Range(1,100)] int page = 1)
+    public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProducts(
+        Guid? cursor,
+        [Range(1, 100)] int pageSize = 10)
     {
         try
         {
-            Log.Information("--> Getting all products from page {Page}.........", page);
+            Log.Information("--> Getting {PageSize} amount of products after cursor {Cursor}", pageSize, cursor);
 
-            int pageItems = 2;
-
-            var productItems = await _repository.GetAllProductsAsync(page, pageItems);
+            var productItems = await _repository.GetAllProductsAsync(cursor, pageSize);
 
             if(!productItems.Any())
             {
-                Log.Warning("--> No products found in database.");
+                Log.Warning("--> No products found in database after cursor {Cursor} or cursor not found.", cursor);
                 return NotFound();
             }
 
-            Log.Information("--> Fetched all products from database for page {Page}.", page);
+            Log.Information("--> Fetched {PageSize} amount of products from database after cursor {Cursor}.", pageSize, cursor);
 
             var dtos = _mapper.Map<IEnumerable<ProductReadDto>>(productItems);
 
-            var pageCount = Math.Ceiling(await _repository.GetAllProductsCountAsync() / (float)pageItems);
+            var pageCount = Math.Ceiling(await _repository.GetAllProductsCountAsync() / (float)pageSize);
 
-            ProductPageReadDto productPageRead = new()
+            ProductPageReadDto productPageReadDto = new()
             {
                 ProductReadDtos = dtos,
-                CurrentPage = page,
+                Cursor = dtos.Last().Id,
                 Pages = (int)pageCount
             };
 
-            return Ok(productPageRead);
+            return Ok(productPageReadDto);
         }
         catch (Exception ex)
         {

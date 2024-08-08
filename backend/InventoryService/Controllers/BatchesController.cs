@@ -35,11 +35,11 @@ namespace InventoryService.Controllers
 
                 if (productItem == null)
                 {
-                    Log.Warning("Product with id {Id} not found.", ProductId);
+                    Log.Warning("Product with id {Id} not found to add batch to.", ProductId);
                     return NotFound();
                 }
 
-                Log.Information("--> Created batch: {Id}", productItem.Id);
+                Log.Information("--> Created batch for produc: {Id}", productItem.Id);
 
                 var productReadDto = _mapper.Map<ProductReadDto>(productItem);
 

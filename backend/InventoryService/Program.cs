@@ -33,13 +33,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
- 
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
 
-PrepDB.PrepPopulation(app);
+//PrepDB.PrepPopulation(app);
 
 await app.RunAsync();

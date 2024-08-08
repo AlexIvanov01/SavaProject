@@ -21,7 +21,7 @@ public class Order
 
     public Guid? CustomerId { get; set; }
     public Customer? Customer { get; set; } = new Customer();
-    public int? InvoiceId { get; set; }
-    public Invoice? Invocie { get; set; }
+
+    public Invoice? Invoice { get; set; }
     public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

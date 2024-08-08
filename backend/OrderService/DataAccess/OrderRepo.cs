@@ -51,29 +51,54 @@ public class OrderRepo : IOrderRepo
         return await _context.Orders.CountAsync();
     }
 
-    public async Task<IEnumerable<Order>> GetAllOrdersAsync(int page, int pageItems)
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync(Guid? cursor, int pageSize)
     {
+        if (cursor != null)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.Invoice)
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .Where(o => o.Id >= cursor)
+                .Take(pageSize)
+                .OrderBy(o => o.Id)
+                .ToArrayAsync();
+        }
         return await _context.Orders
             .AsNoTracking()
-            .Include(o => o.Invocie)
+            .Include(o => o.Invoice)
             .Include(o => o.Customer)
             .Include(o => o.OrderItems)
-            .Skip((page - 1) * pageItems)
-            .Take(pageItems)
-            .ToListAsync();
+            .Take(pageSize)
+            .OrderBy(o => o.Id)
+            .ToArrayAsync();
     }
 
     public async Task<IEnumerable<Order>> GetAllOrdersByCustomerIdAsync 
-        (Guid? customerId, int page, int pageItems)
+        (Guid? customerId, Guid? cursor, int pageSize)
     {
+        if (cursor != null)
+        {
+            return await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.OrderItems)
+                .Include(o => o.Customer)
+                .Include(o => o.Invoice)
+                .Where(o => o.CustomerId == customerId)
+                .Where(o => o.Id > cursor)
+                .Take(pageSize)
+                .OrderBy(o => o.Id)
+                .ToListAsync();           
+        }
         return await _context.Orders
             .AsNoTracking()
-            .Where(o => o.CustomerId == customerId)
             .Include(o => o.OrderItems)
             .Include(o => o.Customer)
-            .Include(o => o.Invocie)
-            .Skip((page - 1) * pageItems)
-            .Take(pageItems)
+            .Include(o => o.Invoice)
+            .Where(o => o.CustomerId == customerId)
+            .Take(pageSize)
+            .OrderBy(o => o.Id)
             .ToListAsync();
     }
 
@@ -83,20 +108,20 @@ public class OrderRepo : IOrderRepo
             .AsNoTracking()
             .Include(o => o.OrderItems)
             .Include(o => o.Customer)
-            .Include(o => o.Invocie)
+            .Include(o => o.Invoice)
             .SingleOrDefaultAsync(p => p.Id == id);
 
         return order;
     }
 
-    public async Task<Order?> GetOrderByInvoiceIdAsync(int id)
+    public async Task<Order?> GetOrderByInvoiceIdAsync(int? id)
     {
         var order = await _context.Orders
             .AsNoTracking()
             .Include(o => o.OrderItems)
             .Include(o => o.Customer)
-            .Include(o => o.Invocie)
-            .SingleOrDefaultAsync(p => p.InvoiceId == id);
+            .Include(o => o.Invoice)
+            .SingleOrDefaultAsync(p => p.Invoice.Id == id);
 
         return order;
     }

@@ -23,43 +23,44 @@ public class OrdersController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<OrderPageReadDto>> GetAllOrdersAsync(
-        [Range(1, 100)] int page = 1,
-        Guid? customerId = null)
+        Guid? cursor,
+        Guid? customerId,
+        [Range(1, 100)] int pageSize = 10)
     {
         try
         {
-            Log.Information("--> Getting all orders from page {Page}", page);
-
-            int pageItems = 2;
-
             IEnumerable<Order> orderPageItems;
 
             if (customerId == null)
             {
-                orderPageItems = await _repository.GetAllOrdersAsync(page, pageItems);
+                Log.Information("--> Getting {PageSize} amount of orders after cursor {Cursor}", pageSize, cursor);
+                orderPageItems = await _repository.GetAllOrdersAsync(cursor, pageSize);
             }
             else
             {
+                Log.Information("--> Getting {PageSize} amount of orders made by customer {Customer} after cursor {Cursor}",
+                    pageSize, customerId, cursor);
+
                 orderPageItems = await _repository.GetAllOrdersByCustomerIdAsync(
                     customerId,
-                    page,
-                    pageItems);
+                    cursor,
+                    pageSize);
             }
 
             if (!orderPageItems.Any())
             {
-                Log.Warning("--> No orderds were found on page {Page}", page);
+                Log.Warning("--> No orderds were found after {Cursor} or cursor not found.", cursor);
                 return NotFound();
             }
 
             var pageCount = Math.Ceiling(
-                await _repository.GetOrderCountAsync() / (float)pageItems);
+                await _repository.GetOrderCountAsync() / (float)pageSize);
 
             var dtos = _mapper.Map<IEnumerable<OrderReadDto>>(orderPageItems);
             var pageDto = new OrderPageReadDto
             {
                 OrderReadDtos = dtos,
-                CurrentPage = page,
+                Cursor = dtos.Last().Id,
                 Pages = (int)pageCount
             };
 
@@ -114,12 +115,66 @@ public class OrdersController : ControllerBase
                 return NotFound();
             }
 
-            Log.Information("Customer created: {@OrderModel}", orderModel);
+            Log.Information("Customer order created: {@OrderModel}", orderModel);
 
             var orderDeadDto = _mapper.Map<OrderReadDto>(orderModel);
 
-            return CreatedAtRoute(nameof(GetOrderById),
-                new { Id = orderDeadDto.Id }, orderDeadDto);
+            return CreatedAtRoute(nameof(GetOrderById), new { orderDeadDto.Id }, orderDeadDto);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Internal server error.");
+            return StatusCode(500, "An internal server error occured.");
+        }
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateOrder(Guid id, OrderUpdateDto orderUpdateDto)
+    {
+        try
+        {
+            Log.Information("--> Updating a product with id {Id}....................", id);
+
+            var orderModel = _mapper.Map<Order>(orderUpdateDto);
+            orderModel.Id = id;
+
+            var nullCHeck = await _repository.UpdateOrderAsync(orderModel);
+
+            if (nullCHeck == null)
+            {
+                Log.Warning("Order with id {Id} not found for updating.", id);
+                return NotFound();
+            }
+
+            Log.Information("--> Order with id {Id} updated", id);
+
+            return Ok(_mapper.Map<OrderReadDto>(orderModel));
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Internal server error.");
+            return StatusCode(500, "An internal server error occured.");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(Guid id)
+    {
+        try
+        {
+            Log.Information("--> Deleting an order...........");
+
+            var nullCheck = await _repository.DeleteOrderAsync(id);
+
+            if (nullCheck == null)
+            {
+                Log.Warning("Order with id {Id} not found for deleting.", id);
+                return NotFound();
+            }
+
+            Log.Information("--> Product with id {Id} deleted", id);
+
+            return NoContent();
         }
         catch (Exception ex)
         {

@@ -1,4 +1,7 @@
-﻿namespace OrderService.Dtos;
+﻿using System;
+using System.Collections.Generic;
+
+namespace OrderService.Dtos;
 
 public class OrderPageReadDto
 {

@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
 
 namespace OrderService.DataAccess;
@@ -61,8 +65,8 @@ public class OrderRepo : IOrderRepo
                 .Include(o => o.Customer)
                 .Include(o => o.OrderItems)
                 .Where(o => o.Id >= cursor)
-                .Take(pageSize)
                 .OrderBy(o => o.Id)
+                .Take(pageSize)
                 .ToArrayAsync();
         }
         return await _context.Orders
@@ -70,8 +74,8 @@ public class OrderRepo : IOrderRepo
             .Include(o => o.Invoice)
             .Include(o => o.Customer)
             .Include(o => o.OrderItems)
-            .Take(pageSize)
             .OrderBy(o => o.Id)
+            .Take(pageSize)
             .ToArrayAsync();
     }
 
@@ -87,8 +91,8 @@ public class OrderRepo : IOrderRepo
                 .Include(o => o.Invoice)
                 .Where(o => o.CustomerId == customerId)
                 .Where(o => o.Id > cursor)
-                .Take(pageSize)
                 .OrderBy(o => o.Id)
+                .Take(pageSize)
                 .ToListAsync();           
         }
         return await _context.Orders
@@ -97,8 +101,8 @@ public class OrderRepo : IOrderRepo
             .Include(o => o.Customer)
             .Include(o => o.Invoice)
             .Where(o => o.CustomerId == customerId)
-            .Take(pageSize)
             .OrderBy(o => o.Id)
+            .Take(pageSize)
             .ToListAsync();
     }
 

@@ -1,4 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.DataAccess;
@@ -172,7 +176,7 @@ public class OrdersController : ControllerBase
                 return NotFound();
             }
 
-            Log.Information("--> Product with id {Id} deleted", id);
+            Log.Information("--> Order with id {Id} deleted", id);
 
             return NoContent();
         }

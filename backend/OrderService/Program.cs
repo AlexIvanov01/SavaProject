@@ -1,4 +1,9 @@
+using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OrderService.DataAccess;
 using Serilog;
 
@@ -31,10 +36,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
+
+PrepDB.PrepPopulation(app);
 
 await app.RunAsync();

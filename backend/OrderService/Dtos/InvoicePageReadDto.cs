@@ -1,4 +1,6 @@
-﻿namespace OrderService.Dtos;
+﻿using System.Collections.Generic;
+
+namespace OrderService.Dtos;
 
 public class InvoicePageReadDto
 {

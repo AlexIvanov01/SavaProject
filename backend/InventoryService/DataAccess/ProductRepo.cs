@@ -69,8 +69,8 @@ public class ProductRepo : IProductRepo
                 .AsNoTracking()
                 .Include(a => a.Batches)
                 .Where(p => p.Id > cursor)
-                .Take(pageSize)
                 .OrderBy(p => p.Id)
+                .Take(pageSize)
                 .ToListAsync();
         }
         return await _context.Products

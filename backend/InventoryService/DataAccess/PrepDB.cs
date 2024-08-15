@@ -6,6 +6,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryService.DataAccess;
 
@@ -21,6 +22,16 @@ public static class PrepDB
 
     private static void SeedData(ProductContext context)
     {
+        Log.Information("--> Attempting to apply migrations...");
+        try
+        {
+            context.Database.Migrate(); 
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "--> Could not run migrations: {Ex}", ex.Message);
+        }
+
         if (!context.Products.Any())
         {
             Log.Information("--> Seeding data...");

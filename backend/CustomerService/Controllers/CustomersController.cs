@@ -1,4 +1,8 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
 using CustomerService.DataAccess;
 using CustomerService.Dtos;
 using CustomerService.Models;
@@ -29,6 +33,12 @@ namespace CustomerService.Controllers
 
                 var customers = await _repository.GetAllCustomersAsync();
 
+                if(!customers.Any())
+                {
+                    Log.Warning("--> No customerts found in database.");
+                    return NotFound();
+                }
+
                 Log.Information("--> Fetched all customers from database.");
 
                 return Ok(_mapper.Map<IEnumerable<CustomerReadDto>>(customers));
@@ -45,7 +55,6 @@ namespace CustomerService.Controllers
             }
         }
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         [HttpGet("{id}", Name = "GetCustomerById")]
         public async Task<ActionResult<CustomerReadDto>> GetCustomerById(Guid id)
         {
@@ -149,6 +158,5 @@ namespace CustomerService.Controllers
                 return StatusCode(500, "An internal server error occured.");
             }
         }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 }

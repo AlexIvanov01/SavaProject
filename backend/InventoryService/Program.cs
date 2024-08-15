@@ -38,6 +38,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//PrepDB.PrepPopulation(app);
+PrepDB.PrepPopulation(app);
 
 await app.RunAsync();

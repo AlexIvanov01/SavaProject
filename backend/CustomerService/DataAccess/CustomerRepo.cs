@@ -1,4 +1,7 @@
-﻿using CustomerService.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CustomerService.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerService.DataAccess
@@ -17,7 +20,7 @@ namespace CustomerService.DataAccess
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Customer>? DeleteCustomerAsync(Guid id)
+        public async Task<Customer?> DeleteCustomerAsync(Guid id)
         {
             var dbCustomer = await _context.Customers
             .AsNoTracking()
@@ -25,9 +28,7 @@ namespace CustomerService.DataAccess
 
             if (dbCustomer == null)
             {
-#pragma warning disable CS8603 // Possible null reference return.
                 return null;
-#pragma warning restore CS8603 // Possible null reference return.
             }
 
             _context.Customers.Attach(dbCustomer);
@@ -45,18 +46,16 @@ namespace CustomerService.DataAccess
             .ToListAsync();
         }
 
-        public async Task<Customer>? GetCustomerAsync(Guid id)
+        public async Task<Customer?> GetCustomerAsync(Guid id)
         {
             var customer = await _context.Customers
             .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == id);
 
-#pragma warning disable CS8603 // Possible null reference return.
             return customer;
-#pragma warning restore CS8603 // Possible null reference return.
         }
 
-        public async Task<Customer>? UpdateCustomerAsync(Customer customer)
+        public async Task<Customer?> UpdateCustomerAsync(Customer customer)
         {
             var dbCustomer = await _context.Customers
             .AsNoTracking()
@@ -64,9 +63,7 @@ namespace CustomerService.DataAccess
 
             if (dbCustomer == null)
             {
-#pragma warning disable CS8603 // Possible null reference return.
                 return null;
-#pragma warning restore CS8603 // Possible null reference return.
             }
 
             dbCustomer = customer;

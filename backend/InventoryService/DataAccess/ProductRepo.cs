@@ -91,15 +91,6 @@ public class ProductRepo : IProductRepo
         return product;
     }
 
-    public async Task<Product?> GetProductOnlyAsync(Guid id)
-    {
-        var product = await _context.Products
-            .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.Id == id);
-
-        return product;
-    }
-
     public async Task<Product?> UpdateProductAsync(Product product)
     {
         var DbProduct = await _context.Products
@@ -122,6 +113,12 @@ public class ProductRepo : IProductRepo
                 property.IsModified = false;
             }
         }
+
+        if(DbProduct.Batches.Count == 0)
+        {
+            _context.Entry(DbProduct).Property(p => p.Batches).IsModified = false;
+        }
+
         _context.Entry(DbProduct).Property(p => p.Id).IsModified = false;
         _context.Entry(DbProduct).Property(p => p.ProductDateAdded).IsModified = false;
 
@@ -171,6 +168,8 @@ public class ProductRepo : IProductRepo
         {
             return null;
         }
+
+        batch.BatchDateAdded = DateTime.Now;
 
         product.Batches.Add(batch);
 

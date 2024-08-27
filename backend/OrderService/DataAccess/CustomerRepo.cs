@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
+using Serilog;
 
 namespace OrderService.DataAccess;
 
@@ -15,28 +17,33 @@ public class CustomerRepo : ICustomerRepo
     }
     public async Task АddCustomerAsync(Customer customer)
     {
-        await _context.Customers.AddAsync(customer);
-        await _context.SaveChangesAsync();
+        if (customer.ExternalId != Guid.Empty)
+        {
+            await _context.Customers.AddAsync(customer);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<Customer?> GetCustomerAsync(Guid id)
     {
         var customer = await _context.Customers
             .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.Id == id);
+            .SingleOrDefaultAsync(p => p.ExternalId == id);
 
         return customer;
     }
 
-    public async Task<Customer?> UpdateCustomerAsync(Customer customer)
+    public async Task UpdateCustomerAsync(Customer customer)
     {
         var dbCustomer = await _context.Customers
             .AsNoTracking()
-            .SingleOrDefaultAsync(p => p.Id == customer.Id);
+            .SingleOrDefaultAsync(p => p.ExternalId == customer.ExternalId);
 
         if (dbCustomer == null)
         {
-            return null;
+            //To-do: Create an appropriate respone to an update for an non existent object
+            Log.Error("Customer for updating was not found: {Id}", customer.ExternalId);
+            return;
         }
 
         dbCustomer = customer;
@@ -49,29 +56,19 @@ public class CustomerRepo : ICustomerRepo
                 property.IsModified = false;
             }
         }
-        _context.Entry(dbCustomer).Property(p => p.Id).IsModified = false;
+        _context.Entry(dbCustomer).Property(p => p.ExternalId).IsModified = false;
 
         await _context.SaveChangesAsync();
-
-        return dbCustomer;
     }
 
-    public async Task<Customer?> DeleteCustomerAsync(Guid id)
+    public async Task DeleteCustomerAsync(Guid id)
     {
-        var dbCustomer = await _context.Customers
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Id == id);
+        await _context.Customers
+            .Where(x => x.ExternalId == id).ExecuteDeleteAsync();
+    }
 
-        if (dbCustomer == null)
-        {
-            return null;
-        }
-
-        _context.Customers.Attach(dbCustomer);
-        _context.Customers.Remove(dbCustomer);
-
-        await _context.SaveChangesAsync();
-
-        return dbCustomer;
+    public async Task<bool> ExternalCustomerExistsAsync(Guid? externalId)
+    {
+        return await _context.Customers.AnyAsync(i => i.ExternalId == externalId);
     }
 }

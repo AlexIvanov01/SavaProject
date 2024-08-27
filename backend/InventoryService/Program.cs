@@ -1,5 +1,7 @@
 using System;
+using InventoryService.AsyncDataServices;
 using InventoryService.DataAccess;
+using InventoryService.EventProcessing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +12,9 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddHostedService<MessageBusSubscriber>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ProductContext>(options =>
@@ -17,6 +22,8 @@ builder.Services.AddDbContext<ProductContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("Default"));
 });
 builder.Services.AddScoped<IProductRepo, ProductRepo>();
+builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
+builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 Log.Logger = new LoggerConfiguration()
@@ -38,6 +45,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-PrepDB.PrepPopulation(app);
+await PrepDB.PrepPopulation(app);
 
 await app.RunAsync();

@@ -35,6 +35,7 @@ namespace OrderService.Controllers
                 Log.Information("--> Getting {PageSize} amount of invoices after cursor {Cursor}", pageSize, cursor);
 
                 var invoiceItems = await _repository.GetAllInvociesAsync(cursor, pageSize);
+ 
 
                 if (!invoiceItems.Any())
                 {
@@ -44,22 +45,55 @@ namespace OrderService.Controllers
 
                 Log.Information("--> Fetched {PageSize} amount of invoices from database after cursor {Cursor}.", pageSize, cursor);
 
-                var dtos = _mapper.Map<IEnumerable<InvoiceReadDto>>(invoiceItems);
-
                 var pageCount = Math.Ceiling(await _repository.GetInvoiceCountAsync() / (float)pageSize);
 
+                List<OrderFullReadDto> dtos = [];
+
+                foreach (var item in invoiceItems)
+                {
+                    OrderFullReadDto dto = new()
+                    {
+                        Id = item.Id,
+                        OrderDate = item.OrderDate,
+                        ShippedDate = item.ShippedDate,
+                        ShippingAddress = item.ShippingAddress,
+                        Customer = _mapper.Map<CustomerReadDto>(item.Customer),
+                        Invoice = _mapper.Map<InvoiceReadDto>(item.Invoice)
+                    };
+
+                    foreach (var orderItem in item.OrderItems)
+                    {
+                        ItemReadDto itemReadDto = new()
+                        {
+                            ExternalBatchId = orderItem.ItemId,
+                            ExternalProductId = orderItem.Item.ExternalProductId,
+                            Name = orderItem.Item.Name,
+                            Price = orderItem.Item.Price,
+                            Lot = orderItem.Item.Lot,
+                            ExpirationDate = orderItem.Item.ExpirationDate,
+                            Quantity = orderItem.OrderItemQuantity
+                        };
+
+                        dto.Items.Add(itemReadDto);
+                    }
+
+                    dtos.Add(dto);
+                }
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 InvoicePageReadDto invoicePageReadDto = new()
                 {
-                    InvoiceReadDtos = dtos,
-                    Cursor = dtos.Last().Id,
+                    OrderReadDtos = dtos,
+                    Cursor = dtos.Select(o => o.Invoice).Last().Id,
                     Pages = (int)pageCount
                 };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                 return Ok(invoicePageReadDto);
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message); ;
                 return StatusCode(500, "An internal server error occured.");
             }
         }
@@ -85,13 +119,13 @@ namespace OrderService.Controllers
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Internal server error");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
         }
 
         [HttpPost("{orderId}")]
-        public async Task<ActionResult<InvoiceReadDto>> CreateProduct(InvoiceCreateDto invoiceCreateDto, Guid orderId)
+        public async Task<ActionResult<InvoiceReadDto>> CreateInvoice(InvoiceCreateDto invoiceCreateDto, Guid orderId)
         {
             try
             {
@@ -115,7 +149,7 @@ namespace OrderService.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message); ;
                 return StatusCode(500, "An internal server error occured.");
             }
         }
@@ -144,7 +178,7 @@ namespace OrderService.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
         }
@@ -169,7 +203,7 @@ namespace OrderService.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
         }

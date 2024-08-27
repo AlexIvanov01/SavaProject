@@ -1,4 +1,5 @@
 using System;
+using CustomerService.AsyncDataServices;
 using CustomerService.DataAccess;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<CustomerContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("Default"));
 });
 builder.Services.AddScoped<ICustomerRepo, CustomerRepo>();
+builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 Log.Logger = new LoggerConfiguration()
@@ -37,6 +39,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-PrepDB.PrepPopulation(app);
+await PrepDB.PrepPopulation(app);
 
 await app.RunAsync();

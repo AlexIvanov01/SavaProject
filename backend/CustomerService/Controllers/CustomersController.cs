@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CustomerService.AsyncDataServices;
 using CustomerService.DataAccess;
 using CustomerService.Dtos;
 using CustomerService.Models;
@@ -17,11 +18,13 @@ namespace CustomerService.Controllers
     {
         private readonly ICustomerRepo _repository;
         private readonly IMapper _mapper;
+        private readonly IMessageBusClient _messageBusClient;
 
-        public CustomersController(ICustomerRepo repository, IMapper mapper)
+        public CustomersController(ICustomerRepo repository, IMapper mapper, IMessageBusClient messageBusClient)
         {
             _repository = repository;
             _mapper = mapper;
+            _messageBusClient = messageBusClient;
         }
 
         [HttpGet]
@@ -35,7 +38,7 @@ namespace CustomerService.Controllers
 
                 if(!customers.Any())
                 {
-                    Log.Warning("--> No customerts found in database.");
+                    Log.Warning("--> No customers found in database.");
                     return NotFound();
                 }
 
@@ -43,14 +46,9 @@ namespace CustomerService.Controllers
 
                 return Ok(_mapper.Map<IEnumerable<CustomerReadDto>>(customers));
             }
-            catch (ArgumentNullException ex)
-            {
-                Log.Warning(ex, "--> No customers present in the database.");
-                return NoContent();
-            }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
         }
@@ -66,7 +64,7 @@ namespace CustomerService.Controllers
 
                 if (customer == null)
                 {
-                    Log.Warning("Customer with id {Id} not found.", id);
+                    Log.Warning("--> Customer with id {Id} not found.", id);
                     return NotFound();
                 }
 
@@ -76,7 +74,7 @@ namespace CustomerService.Controllers
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "Internal server error");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
         }
@@ -84,52 +82,83 @@ namespace CustomerService.Controllers
         [HttpPost]
         public async Task<ActionResult<CustomerReadDto>> CreateCustomer(CustomerCreateDto customerCreateDto)
         {
+            CustomerReadDto customerReadDto;
+            Customer customerModel;
+
             try
             {
                 Log.Information("--> Creating a product.............");
-                var customerModel = _mapper.Map<Customer>(customerCreateDto);
+                customerModel = _mapper.Map<Customer>(customerCreateDto);
                 await _repository.CreateCustomerAsync(customerModel);
 
-                Log.Information("Customer created: {@CustomerModel}", customerModel);
+                Log.Information("--> Customer created: {Id}", customerModel.Id);
 
-                var custoemrReadDto = _mapper.Map<CustomerReadDto>(customerModel);
+                customerReadDto = _mapper.Map<CustomerReadDto>(customerModel);
 
-                return CreatedAtRoute(nameof(GetCustomerById), new { Id = custoemrReadDto.Id }, custoemrReadDto);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
+
+            //Send Async Message
+            try
+            {
+                var customerPublishedDto = _mapper.Map<CustomerPublishedDto>(customerModel);
+                customerPublishedDto.Event = "Customer_Published";
+                _messageBusClient.PublishNewCustomer(customerPublishedDto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error with publishing customer message: {Message}", ex.Message);
+            }
+
+            return CreatedAtRoute(nameof(GetCustomerById), new { Id = customerReadDto.Id }, customerReadDto);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCustomer(Guid id, CustomerUpdateDto customerUpdateDto)
         {
+            Customer customerModel;
+
             try
             {
                 Log.Information("--> Updating a product with id {Id}....................", id);
 
-                var customerModel = _mapper.Map<Customer>(customerUpdateDto);
+                customerModel = _mapper.Map<Customer>(customerUpdateDto);
                 customerModel.Id = id;
 
                 var nullCHeck = await _repository.UpdateCustomerAsync(customerModel);
 
                 if (nullCHeck == null)
                 {
-                    Log.Warning("Customer with id {Id} not found for updating.", id);
+                    Log.Warning("--> Customer with id {Id} not found for updating.", id);
                     return NotFound();
                 }
 
                 Log.Information("--> Customer with id {Id} updated", id);
 
-                return Ok(_mapper.Map<CustomerReadDto>(customerModel));
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
+
+            //Send Async Message
+            try
+            {
+                var customerPublishedDto = _mapper.Map<CustomerPublishedDto>(customerModel);
+                customerPublishedDto.Event = "Customer_Updated";
+                _messageBusClient.PublishNewCustomer(customerPublishedDto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error with publishing customer message: {Message}", ex.Message);
+            }
+
+            return Ok(_mapper.Map<CustomerReadDto>(customerModel));
         }
 
         [HttpDelete("{id}")]
@@ -144,19 +173,34 @@ namespace CustomerService.Controllers
 
                 if (nullCheck == null)
                 {
-                    Log.Warning("Customer with id {Id} not found for deleting.", id);
+                    Log.Warning("--> Customer with id {Id} not found for deleting.", id);
                     return NotFound();
                 }
 
                 Log.Information("--> Customer with id {Id} deleted", id);
 
-                return NoContent();
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Internal server error.");
+                Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
                 return StatusCode(500, "An internal server error occured.");
             }
+
+            //Send Async Message
+            try
+            {
+                CustomerPublishedDto customerPublishedDto = new()
+                {
+                    ExternalId = id,
+                    Event = "Customer_Deleted"
+                };
+                _messageBusClient.PublishNewCustomer(customerPublishedDto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error with publishing customer message: {Message}", ex.Message);
+            }
+            return NoContent();
         }
     }
 }

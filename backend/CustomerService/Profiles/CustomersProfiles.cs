@@ -11,5 +11,8 @@ public class CustomersProfiles : Profile
         CreateMap<Customer, CustomerReadDto>();
         CreateMap<CustomerUpdateDto, Customer>();
         CreateMap<CustomerCreateDto, Customer>();
+
+        CreateMap<Customer, CustomerPublishedDto>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id));
     }
 }

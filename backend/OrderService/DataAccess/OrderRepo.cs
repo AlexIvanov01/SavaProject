@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
+using Serilog;
 
 namespace OrderService.DataAccess;
 
@@ -18,14 +19,45 @@ public class OrderRepo : IOrderRepo
 
     public async Task<Order?> CreateOrderAsync(Order order)
     {
+        if (order.OrderItems.Count == 0) 
+        {
+            Log.Error("Invalid order: Order has no items.");
+            return null;
+        }
+
         var dbCustomer = await _context.Customers
-            .SingleOrDefaultAsync(c => c.Id == order.CustomerId);
+            .AsNoTracking()
+            .SingleOrDefaultAsync(c => c.ExternalId == order.CustomerId);
 
         if (dbCustomer == null)
         {
+            Log.Error("Invalid order: Customer with id {Id} was not found", order.CustomerId);
             return null;
         }
-        dbCustomer.Orders.Add(order);
+
+        var itemList = await _context.Items
+            .AsNoTracking()
+            .Select(i => i.ExternalBatchId)
+            .ToListAsync();
+
+        bool validItems = true;
+
+        foreach (var item in order.OrderItems)
+        {
+            if (!itemList.Contains(item.ItemId))
+            {
+                validItems = false;
+            }
+        }
+
+        if (!validItems)
+        {
+            Log.Error("Invalid Order: Order contains invalid items.");
+            return null;
+        }
+
+        _context.Orders.Add(order);
+
         await _context.SaveChangesAsync();
 
         return order;
@@ -61,10 +93,11 @@ public class OrderRepo : IOrderRepo
         {
             return await _context.Orders
                 .AsNoTracking()
+                .Where(o => o.Id > cursor)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Item)
                 .Include(o => o.Invoice)
                 .Include(o => o.Customer)
-                .Include(o => o.OrderItems)
-                .Where(o => o.Id >= cursor)
                 .OrderBy(o => o.Id)
                 .Take(pageSize)
                 .ToArrayAsync();
@@ -74,6 +107,7 @@ public class OrderRepo : IOrderRepo
             .Include(o => o.Invoice)
             .Include(o => o.Customer)
             .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Item)
             .OrderBy(o => o.Id)
             .Take(pageSize)
             .ToArrayAsync();
@@ -86,21 +120,23 @@ public class OrderRepo : IOrderRepo
         {
             return await _context.Orders
                 .AsNoTracking()
-                .Include(o => o.OrderItems)
-                .Include(o => o.Customer)
-                .Include(o => o.Invoice)
                 .Where(o => o.CustomerId == customerId)
                 .Where(o => o.Id > cursor)
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Item)
+                .Include(o => o.Customer)
+                .Include(o => o.Invoice)
                 .OrderBy(o => o.Id)
                 .Take(pageSize)
                 .ToListAsync();           
         }
         return await _context.Orders
             .AsNoTracking()
+            .Where(o => o.CustomerId == customerId)
             .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Item)
             .Include(o => o.Customer)
             .Include(o => o.Invoice)
-            .Where(o => o.CustomerId == customerId)
             .OrderBy(o => o.Id)
             .Take(pageSize)
             .ToListAsync();
@@ -110,22 +146,12 @@ public class OrderRepo : IOrderRepo
     {
         var order = await _context.Orders
             .AsNoTracking()
+            .Where(p => p.Id == id)
             .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Item)
             .Include(o => o.Customer)
             .Include(o => o.Invoice)
-            .SingleOrDefaultAsync(p => p.Id == id);
-
-        return order;
-    }
-
-    public async Task<Order?> GetOrderByInvoiceIdAsync(int? id)
-    {
-        var order = await _context.Orders
-            .AsNoTracking()
-            .Include(o => o.OrderItems)
-            .Include(o => o.Customer)
-            .Include(o => o.Invoice)
-            .SingleOrDefaultAsync(p => p.Invoice.Id == id);
+            .SingleOrDefaultAsync();
 
         return order;
     }
@@ -151,6 +177,12 @@ public class OrderRepo : IOrderRepo
                 property.IsModified = false;
             }
         }
+
+        if (dbOrder.OrderItems.Count == 0)
+        {
+            _context.Entry(dbOrder).Property(p => p.OrderItems).IsModified = false;
+        }
+
         _context.Entry(dbOrder).Property(p => p.Id).IsModified = false;
 
         await _context.SaveChangesAsync();

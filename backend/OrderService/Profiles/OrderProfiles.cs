@@ -8,13 +8,22 @@ public class OrderProfiles : Profile
 {
     public OrderProfiles()
     {
-        CreateMap<Order, OrderReadDto>();
-        CreateMap<OrderItem, OrderItemReadDto>();
+        CreateMap<Order, OrderReadDto>();     
+
+        CreateMap<Item, ItemReadDto>();
         CreateMap<Customer, CustomerReadDto>();
         CreateMap<Invoice, InvoiceReadDto>();
 
         CreateMap<OrderCreateDto, Order>();
-        CreateMap<OrderItemCreateDto, OrderItem>();
+        CreateMap<InvoiceCreateDto, Invoice>();
         CreateMap<OrderUpdateDto, Order>();
+        CreateMap<InvoiceUpdateDto, Invoice>();
+
+        CreateMap<ItemPublishedDto, Item>();
+        CreateMap<CustomerPublishedDto, Customer>();
+
+        CreateMap<OrderItemCreateDto, OrderItem>();
+        CreateMap<OrderItem, OrderItemReadDto>();
+        CreateMap<OrderItem, OrderItemPublishedDto>();
     }
 }

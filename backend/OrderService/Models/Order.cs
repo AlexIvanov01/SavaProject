@@ -6,11 +6,9 @@ namespace OrderService.Models;
 
 public class Order
 {
-    [Key]
-    [Required]  
+    [Key]  
     public Guid Id { get; set; }
 
-    [Required]
     public DateTime? OrderDate { get; set; }
 
     public DateTime? ShippedDate { get; set; }
@@ -22,8 +20,8 @@ public class Order
     public string? OrderStatus { get; set; }
 
     public Guid? CustomerId { get; set; }
-    public Customer? Customer { get; set; } = new Customer();
-
+    public Customer? Customer { get; set; }
+    public int? InvoiceId { get; set; }
     public Invoice? Invoice { get; set; }
-    public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public List<OrderItem> OrderItems { get; set; } = [];
 }

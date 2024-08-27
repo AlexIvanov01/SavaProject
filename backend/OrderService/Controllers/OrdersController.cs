@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.AsyncDataServices;
 using OrderService.DataAccess;
 using OrderService.Dtos;
 using OrderService.Models;
@@ -18,11 +19,13 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderRepo _repository;
     private readonly IMapper _mapper;
+    private readonly IMessageBusClient _messageBusClient;
 
-    public OrdersController(IOrderRepo orderRepo, IMapper mapper)
+    public OrdersController(IOrderRepo orderRepo, IMapper mapper, IMessageBusClient messageBusClient)
     {
         _repository = orderRepo;
         _mapper = mapper;
+        _messageBusClient = messageBusClient;
     }
 
     [HttpGet]
@@ -60,11 +63,43 @@ public class OrdersController : ControllerBase
             var pageCount = Math.Ceiling(
                 await _repository.GetOrderCountAsync() / (float)pageSize);
 
-            var dtos = _mapper.Map<IEnumerable<OrderReadDto>>(orderPageItems);
+            List<OrderFullReadDto> dtos = [];
+
+            foreach (var item in orderPageItems)
+            {
+                OrderFullReadDto dto = new()
+                {
+                    Id = item.Id,
+                    OrderDate = item.OrderDate,
+                    ShippedDate = item.ShippedDate,
+                    ShippingAddress = item.ShippingAddress,
+                    Customer = _mapper.Map<CustomerReadDto>(item.Customer),
+                    Invoice = _mapper.Map<InvoiceReadDto>(item.Invoice)
+                };
+
+                foreach(var orderItem in item.OrderItems)
+                {
+                    ItemReadDto itemReadDto = new()
+                    {
+                        ExternalBatchId = orderItem.ItemId,
+                        ExternalProductId = orderItem.Item.ExternalProductId,
+                        Name = orderItem.Item.Name,
+                        Price = orderItem.Item.Price,
+                        Lot = orderItem.Item.Lot,
+                        ExpirationDate = orderItem.Item.ExpirationDate,
+                        Quantity = orderItem.OrderItemQuantity
+                    };
+
+                    dto.Items.Add(itemReadDto);
+                }
+
+                dtos.Add(dto);
+            }
+
             var pageDto = new OrderPageReadDto
             {
-                OrderReadDtos = dtos,
-                Cursor = dtos.Last().Id,
+                OrderFullReadDtos = dtos,
+                Cursor = dtos[dtos.Count-1].Id,
                 Pages = (int)pageCount
             };
 
@@ -72,7 +107,7 @@ public class OrdersController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Internal server error");
+            Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }
@@ -106,30 +141,47 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OrderReadDto>> CreateOrder(OrderCreateDto orderCreateDto)
     {
+        OrderReadDto orderReadDto;
+        Order orderModel;
+
         try
         {
             Log.Information("--> Creating an order.............");
-            var orderModel = _mapper.Map<Order>(orderCreateDto);
-            var custoemrExistCheck = await _repository.CreateOrderAsync(orderModel);
+            orderModel = _mapper.Map<Order>(orderCreateDto);
+            var validOrder = await _repository.CreateOrderAsync(orderModel);
 
-            if (custoemrExistCheck == null)
+            if (validOrder == null)
             {
-                Log.Warning("Customer to add order to with id {Id} not found.",
-                    orderModel.CustomerId);
                 return NotFound();
             }
 
-            Log.Information("Customer order created: {@OrderModel}", orderModel);
+            Log.Information("--> Customer order created: {Id}", orderModel.Id);
 
-            var orderDeadDto = _mapper.Map<OrderReadDto>(orderModel);
-
-            return CreatedAtRoute(nameof(GetOrderById), new { orderDeadDto.Id }, orderDeadDto);
+            orderReadDto = _mapper.Map<OrderReadDto>(orderModel);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
+
+        //Send Async Message
+        try
+        {
+            OrderPublishedEvent orderPublishedEvent = new()
+            {
+                OrderItems = _mapper.Map<IEnumerable<OrderItemPublishedDto>>(orderModel.OrderItems),
+                Event = "Order_Published"
+            };
+
+            _messageBusClient.PublishNewOrder(orderPublishedEvent);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error with publishing order message: {Message}", ex.Message);
+        }
+
+        return CreatedAtRoute(nameof(GetOrderById), new { orderReadDto.Id }, orderReadDto);
     }
 
     [HttpPut("{id}")]
@@ -146,7 +198,7 @@ public class OrdersController : ControllerBase
 
             if (nullCHeck == null)
             {
-                Log.Warning("Order with id {Id} not found for updating.", id);
+                Log.Warning("--> Order with id {Id} not found for updating.", id);
                 return NotFound();
             }
 
@@ -156,7 +208,7 @@ public class OrdersController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }
@@ -172,7 +224,7 @@ public class OrdersController : ControllerBase
 
             if (nullCheck == null)
             {
-                Log.Warning("Order with id {Id} not found for deleting.", id);
+                Log.Warning("--> Order with id {Id} not found for deleting.", id);
                 return NotFound();
             }
 
@@ -182,7 +234,7 @@ public class OrdersController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }

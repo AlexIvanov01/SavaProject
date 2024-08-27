@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OrderService.Dtos;
 public record OrderReadDto(Guid Id, DateTime OrderDate, DateTime? ShippedDate,
-    string ShippingAddress, string OrderStatus, CustomerReadDto Customer,
-    InvoiceReadDto? Invocie, List<OrderItemReadDto> OrderItems);
+    string ShippingAddress, string OrderStatus, Guid CustomerId,
+    InvoiceReadDto? Invoice, List<OrderItemReadDto> OrderItems);
 
 public record CustomerReadDto(Guid Id, string Name, string CompanyName,
      string Email, string PhoneNumber, string Address, string City,
@@ -14,21 +14,25 @@ public record CustomerReadDto(Guid Id, string Name, string CompanyName,
 public record InvoiceReadDto(int Id, DateTime InvoiceDate, OrderReadDto Order,
      string InvoiceStatus, decimal TotalAmount);
 
-public record OrderItemReadDto(Guid Id, string Name,int Quantity,
-    decimal Price, string Lot, Guid OrderId);
+public record OrderItemReadDto(Guid ItemId, int OrderItemQuantity);
 
-public record InvoiceCreateDto(DateTime InvoiceDate,
+public record OrderItemPublishedDto(Guid ItemId, int OrderItemQuantity);
+
+public record InvoiceCreateDto(int? ID, DateTime InvoiceDate,
      string InvoiceStatus, decimal TotalAmount);
 
 public record OrderCreateDto(DateTime OrderDate, DateTime? ShippedDate, 
     string ShippingAddress, string OrderStatus,[Required] Guid CustomerId,
-    List<OrderItemCreateDto> OrderItems);
+    [Required] List<OrderItemCreateDto> OrderItems);
 
-public record OrderItemCreateDto(string Name, [Required] int Quantity, 
-    [Required] decimal Price, string Lot);
+public record OrderItemCreateDto([Required] Guid ItemId, [Required] int OrderItemQuantity);
 
 public record OrderUpdateDto(DateTime? OrderDate, DateTime? ShippedDate,
     string? ShippingAddress, string? OrderStatus, Guid? CustomerId);
 
 public record InvoiceUpdateDto(DateTime? InvoiceDate,
      string? InvoiceStatus, decimal? TotalAmount);
+
+public record CustomerPublishedDto(Guid ExternalId, string? Name, string? CompanyName,
+    string? Email, string? PhoneNumber, string? Address, string? City, string? Country,
+    string? BankName, string? IBAN, string? BIC, string? VATNumber, string? UIC);

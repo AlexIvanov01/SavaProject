@@ -7,8 +7,7 @@ namespace OrderService.Models;
 public class Customer
 {
     [Key]
-    [Required]
-    public Guid Id { get; set; }
+    public Guid ExternalId { get; set; }
 
     [MaxLength(100)]
     public string? Name { get; set; }
@@ -45,5 +44,5 @@ public class Customer
 
     [MaxLength(20)]
     public string? UIC { get; set; }
-    public List<Order> Orders { get; set; } = new List<Order>();
+    public List<Order> Orders { get; set; } = [];
 }

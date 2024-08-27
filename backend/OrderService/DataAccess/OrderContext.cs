@@ -12,19 +12,29 @@ public class OrderContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<Item> Items { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<OrderItem>()
+            .HasKey(oi => new { oi.OrderId, oi.ItemId});
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Order)
+            .WithMany(o => o.OrderItems)
+            .HasForeignKey(oi => oi.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Item)
+            .WithMany(i => i.ItemOrders)
+            .HasForeignKey(oi => oi.ItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Order)
             .WithOne(o => o.Invoice)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Order>()
-            .HasMany(o => o.OrderItems)
-            .WithOne(i => i.Order)
-            .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Customer>()

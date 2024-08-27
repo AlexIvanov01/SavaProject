@@ -6,8 +6,10 @@ namespace OrderService.DataAccess;
 
 public interface ICustomerRepo
 {
+    Task<bool> ExternalCustomerExistsAsync(Guid? externalId);
     Task<Customer?> GetCustomerAsync(Guid id);
     Task АddCustomerAsync(Customer customer);
-    Task<Customer?> DeleteCustomerAsync(Guid id);
-    Task<Customer?> UpdateCustomerAsync(Customer customer);
+    Task DeleteCustomerAsync(Guid id);
+    Task UpdateCustomerAsync(Customer customer);
+
 }

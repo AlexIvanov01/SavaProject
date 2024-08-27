@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using InventoryService.AsyncDataServices;
 using InventoryService.DataAccess;
 using InventoryService.Dtos;
 using InventoryService.Models;
@@ -18,11 +19,13 @@ public class ProductsController : ControllerBase
 {
     private readonly IProductRepo _repository;
     private readonly IMapper _mapper;
+    private readonly IMessageBusClient _messageBusClient;
 
-    public ProductsController(IProductRepo repository, IMapper mapper)
+    public ProductsController(IProductRepo repository, IMapper mapper, IMessageBusClient messageBusClient)
     {
         _repository = repository;
         _mapper = mapper;
+        _messageBusClient = messageBusClient;
     }
 
     [HttpGet]
@@ -59,7 +62,7 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Internal server error.");
+            Log.Fatal(ex, "Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }
@@ -85,7 +88,7 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Fatal(ex, "Internal server error");
+            Log.Fatal(ex, "Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }
@@ -107,7 +110,7 @@ public class ProductsController : ControllerBase
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
     }
@@ -115,11 +118,13 @@ public class ProductsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProduct(Guid id, ProductUpdateDto productUpdateDto)
     {
+        Product productModel;
+
         try
         {
             Log.Information("--> Updating a product with id {Id}....................", id);
 
-            var productModel = _mapper.Map<Product>(productUpdateDto);
+            productModel = _mapper.Map<Product>(productUpdateDto);
             productModel.Id = id;
 
             var nullCHeck = await _repository.UpdateProductAsync(productModel);
@@ -131,14 +136,33 @@ public class ProductsController : ControllerBase
             }
 
             Log.Information("--> Product with id {Id} updated", id);
-
-            return Ok(_mapper.Map<ProductReadDto>(productModel));
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
+
+        if (productUpdateDto.Name != null)
+        {
+            //Send Async Message
+            try
+            {
+                ItemPublishedDto itemPublishedDto = new()
+                {
+                    ExternalProductId = id,
+                    Name = productModel.Name,
+                    Event = "ProductName_Updated"
+                };
+                _messageBusClient.PublishNewItem(itemPublishedDto);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error with publishing item message: {Message}", ex.Message);
+            }
+        }
+
+        return Ok(_mapper.Map<ProductReadDto>(productModel));
     }
 
 
@@ -159,13 +183,29 @@ public class ProductsController : ControllerBase
             }
 
             Log.Information("--> Product with id {Id} deleted", id);
-
-            return NoContent();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Internal server error.");
+            Log.Fatal(ex, "Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
+
+        //Send Async Message
+        try
+        {
+            ItemPublishedDto itemPublishedDto = new()
+            {
+                ExternalProductId = id,
+                Event = "Product_Deleted"
+            };
+
+            _messageBusClient.PublishNewItem(itemPublishedDto);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error with publishing item message: {Message}", ex.Message);
+        }
+
+        return NoContent();
     }
 }

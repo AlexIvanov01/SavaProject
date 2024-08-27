@@ -3,25 +3,28 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace OrderService.DataAccess;
 
 public static class PrepDB
 {
-    public static void PrepPopulation(IApplicationBuilder app)
+    public static async Task PrepPopulation(IApplicationBuilder app)
     {
         using (var serviceScope = app.ApplicationServices.CreateScope())
         {
-            SeedData(serviceScope.ServiceProvider.GetService<OrderContext>());
+            await SeedData(serviceScope.ServiceProvider.GetService<OrderContext>());
         }
     }
 
-    private static void SeedData(OrderContext context)
+    private static async Task SeedData(OrderContext context)
     {
         Log.Information("--> Attempting to apply migrations...");
         try
         {
-            context.Database.Migrate();
+            Log.Information("--> Waiting 5 seconds for DB iniialization...");
+            await Task.Delay(5000);
+            await context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {

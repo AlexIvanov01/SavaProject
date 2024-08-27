@@ -7,11 +7,10 @@ namespace InventoryService.Models;
 
 public class Product
 {
-    [Required]
+    [Key]
     public Guid Id { get; set; }
-    [Required]
     [MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
     [MaxLength(500)]
     public string? Description { get; set; }
     [MaxLength(50)]
@@ -27,7 +26,7 @@ public class Product
     public string? Barcode { get; set; }
     public int? ReorderLevel { get; set; } 
     public float? Weight { get; set; }
-    public DateTime ProductDateAdded { get; set; }
+    public DateTime? ProductDateAdded { get; set; }
     public DateTime? ProductDateUpdated { get; set; }
-    public List<ProductBatch> Batches { get; set; } = new List<ProductBatch>();
+    public List<ProductBatch> Batches { get; set; } = [];
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using InventoryService.Dtos;
 using InventoryService.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -114,11 +115,6 @@ public class ProductRepo : IProductRepo
             }
         }
 
-        if(DbProduct.Batches.Count == 0)
-        {
-            _context.Entry(DbProduct).Property(p => p.Batches).IsModified = false;
-        }
-
         _context.Entry(DbProduct).Property(p => p.Id).IsModified = false;
         _context.Entry(DbProduct).Property(p => p.ProductDateAdded).IsModified = false;
 
@@ -181,5 +177,37 @@ public class ProductRepo : IProductRepo
     public async Task<int> GetAllProductsCountAsync()
     {
        return await _context.Products.CountAsync();
+    }
+
+    public async Task DecrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems)
+    {
+        var OrderItemsDict = OrderItems.ToDictionary(oi => oi.ItemId, oi => oi.OrderItemQuantity);
+
+        var batches =  await _context.ProductBatches
+           .Where(b => OrderItemsDict.Keys.Contains(b.Id))
+           .ToListAsync();
+
+        foreach (var b in batches)
+        {
+            b.Quantity -= OrderItemsDict[b.Id];
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task IncrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems)
+    {
+        var OrderItemsDict = OrderItems.ToDictionary(oi => oi.ItemId, oi => oi.OrderItemQuantity);
+
+        var batches = await _context.ProductBatches
+           .Where(b => OrderItemsDict.Keys.Contains(b.Id))
+           .ToListAsync();
+
+        foreach (var b in batches)
+        {
+            b.Quantity += OrderItemsDict[b.Id];
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

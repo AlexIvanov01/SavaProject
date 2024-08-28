@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using InventoryService.Dtos;
 using InventoryService.Models;
 
 namespace InventoryService.DataAccess;
@@ -16,5 +17,7 @@ public interface IProductRepo
     Task<Product?> AddBatchAsync(ProductBatch batch, Guid ProductId);
     Task<ProductBatch?> UpdateBatchAsync(ProductBatch batch);
     Task<ProductBatch?> DeleteBatchAsync(Guid id);
+    Task DecrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems);
+    Task IncrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems);
 
 }

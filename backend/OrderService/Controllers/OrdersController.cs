@@ -187,35 +187,65 @@ public class OrdersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOrder(Guid id, OrderUpdateDto orderUpdateDto)
     {
+        Order orderModel;
+        Order preUpdateOrderModel;
         try
         {
             Log.Information("--> Updating a product with id {Id}....................", id);
 
-            var orderModel = _mapper.Map<Order>(orderUpdateDto);
+            orderModel = _mapper.Map<Order>(orderUpdateDto);
             orderModel.Id = id;
 
             var nullCHeck = await _repository.UpdateOrderAsync(orderModel);
 
             if (nullCHeck == null)
             {
-                Log.Warning("--> Order with id {Id} not found for updating.", id);
                 return NotFound();
             }
+            preUpdateOrderModel = nullCHeck;
 
             Log.Information("--> Order with id {Id} updated", id);
-
-            return Ok(_mapper.Map<OrderReadDto>(orderModel));
         }
         catch (Exception ex)
         {
             Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
+
+        //Send Async Message
+        try
+        {
+            if (orderUpdateDto.OrderItems != null && orderUpdateDto.OrderItems.Count != 0)
+            {
+                OrderPublishedEvent orderDeletedEvent = new()
+                {
+                    OrderItems = _mapper.Map<IEnumerable<OrderItemPublishedDto>>(preUpdateOrderModel.OrderItems),
+                    Event = "Order_Deleted"
+                };
+
+                _messageBusClient.PublishNewOrder(orderDeletedEvent);
+
+                OrderPublishedEvent orderPublishedEvent = new()
+                {
+                    OrderItems = _mapper.Map<IEnumerable<OrderItemPublishedDto>>(orderUpdateDto.OrderItems),
+                    Event = "Order_Published"
+                };
+
+                _messageBusClient.PublishNewOrder(orderPublishedEvent);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error with publishing order message: {Message}", ex.Message);
+        }
+
+        return Ok(_mapper.Map<OrderReadDto>(orderModel));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(Guid id)
     {
+        Order preDeleteOrderModel;
         try
         {
             Log.Information("--> Deleting an order...........");
@@ -230,13 +260,31 @@ public class OrdersController : ControllerBase
 
             Log.Information("--> Order with id {Id} deleted", id);
 
-            return NoContent();
+            preDeleteOrderModel = nullCheck;
+
         }
         catch (Exception ex)
         {
             Log.Fatal(ex, "--> Internal server error: {Message}", ex.Message);
             return StatusCode(500, "An internal server error occured.");
         }
+
+        //Send async Message
+        try
+        {
+            OrderPublishedEvent orderDeletedEvent = new()
+            {
+                OrderItems = _mapper.Map<IEnumerable<OrderItemPublishedDto>>(preDeleteOrderModel.OrderItems),
+                Event = "Order_Deleted"
+            };
+
+            _messageBusClient.PublishNewOrder(orderDeletedEvent);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error with publishing order message: {Message}", ex.Message);
+        }
+        return NoContent();
     }
 
 }

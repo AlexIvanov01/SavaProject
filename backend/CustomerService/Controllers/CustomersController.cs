@@ -124,7 +124,7 @@ namespace CustomerService.Controllers
 
             try
             {
-                Log.Information("--> Updating a product with id {Id}....................", id);
+                Log.Information("--> Updating a customer with id {Id}....................", id);
 
                 customerModel = _mapper.Map<Customer>(customerUpdateDto);
                 customerModel.Id = id;

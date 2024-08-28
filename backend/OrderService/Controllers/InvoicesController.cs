@@ -26,7 +26,7 @@ namespace OrderService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InvoiceReadDto>>> GetInvoices(
+        public async Task<ActionResult<InvoicePageReadDto>> GetInvoices(
         int? cursor,
         [Range(1, 100)] int pageSize = 10)
         {
@@ -115,6 +115,7 @@ namespace OrderService.Controllers
 
                 Log.Information("--> Fetched an invoice with id {Id}.", id);
 
+                // Fix return type to full order dto ---------------------------------------------------------------------- << !
                 return Ok(_mapper.Map<InvoiceReadDto>(invoiceItem));
             }
             catch (Exception ex)
@@ -137,7 +138,6 @@ namespace OrderService.Controllers
 
                 if (orderItem == null)
                 {
-                    Log.Warning("Order with id {Id} not found to make an invoice.", orderId);
                     return NotFound();
                 }
 

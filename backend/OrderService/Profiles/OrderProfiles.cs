@@ -17,6 +17,7 @@ public class OrderProfiles : Profile
         CreateMap<OrderCreateDto, Order>();
         CreateMap<InvoiceCreateDto, Invoice>();
         CreateMap<OrderUpdateDto, Order>();
+        CreateMap<OrderItemUpdateDto, OrderItem>();
         CreateMap<InvoiceUpdateDto, Invoice>();
 
         CreateMap<ItemPublishedDto, Item>();
@@ -24,6 +25,8 @@ public class OrderProfiles : Profile
 
         CreateMap<OrderItemCreateDto, OrderItem>();
         CreateMap<OrderItem, OrderItemReadDto>();
+
         CreateMap<OrderItem, OrderItemPublishedDto>();
+        CreateMap<OrderItemUpdateDto, OrderItemPublishedDto>();
     }
 }

@@ -30,17 +30,17 @@ public class OrderContext : DbContext
             .HasOne(oi => oi.Item)
             .WithMany(i => i.ItemOrders)
             .HasForeignKey(oi => oi.ItemId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Invoice>()
             .HasOne(i => i.Order)
             .WithOne(o => o.Invoice)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Customer>()
             .HasMany(c => c.Orders)
             .WithOne(o => o.Customer)
             .HasForeignKey(o => o.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

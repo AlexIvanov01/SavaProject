@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Models;
+using Serilog;
 
 namespace OrderService.DataAccess;
 
@@ -109,6 +110,12 @@ public class InvoiceRepo : IInvoiceRepo
             return null;
         }
 
+        int? newInvoiceId = null;
+
+        await _context.Orders
+            .Where(i => i.InvoiceId == id)
+            .ExecuteUpdateAsync(p => p.SetProperty(o => o.InvoiceId , newInvoiceId));
+
         _context.Invoices.Attach(dbInvoice);
         _context.Invoices.Remove(dbInvoice);
 
@@ -120,17 +127,23 @@ public class InvoiceRepo : IInvoiceRepo
     public async Task<Order?> CreateInvocieAsync(Invoice invoice, Guid orderId)
     {
         var order = await _context.Orders
-            .AsNoTracking()
             .SingleOrDefaultAsync(p => p.Id == orderId);
 
         if (order == null)
         {
+            Log.Error("Invoice creation validation error: Order does not exist");
             return null;
         }
 
-        order.Invoice = invoice;
+        if( order.InvoiceId != null)
+        {
+            Log.Error("Invoice creation validation error: Order already has an invoice");
+            return null;
+        }
 
-        _context.Entry(order).State = EntityState.Modified;
+        _context.Invoices.Add(invoice);
+        order.Invoice = invoice;
+        order.InvoiceId = invoice.Id;
 
         await _context.SaveChangesAsync();
 

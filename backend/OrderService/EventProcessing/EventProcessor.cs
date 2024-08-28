@@ -138,11 +138,11 @@ public class EventProcessor : IEventProcessor
             if (!checkCustomer)
             {
                 await repo.АddCustomerAsync(customer);
-                Log.Warning("--> Customer added!");
+                Log.Information("--> Customer added!");
             }
             else
             {
-                Log.Warning("--> Customer already exists");
+                Log.Information("--> Customer already exists");
             }
         }
         catch (Exception ex)
@@ -345,7 +345,7 @@ public class EventProcessor : IEventProcessor
             case "Item_Deleted":
                 Log.Information("--> Item Deleted Event Detected");
                 return EventType.ItemDeleted;
-            case "ProductName_Updateed":
+            case "ProductName_Updated":
                 Log.Information("--> Product Name Updated Event Detected");
                 return EventType.ProductNameUpdated;
             case "Product_Deleted":

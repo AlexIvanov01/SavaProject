@@ -27,33 +27,55 @@ public class OrderRepo : IOrderRepo
 
         var dbCustomer = await _context.Customers
             .AsNoTracking()
-            .SingleOrDefaultAsync(c => c.ExternalId == order.CustomerId);
+            .AnyAsync(c => c.ExternalId == order.CustomerId);
 
-        if (dbCustomer == null)
+        if (!dbCustomer)
         {
             Log.Error("Invalid order: Customer with id {Id} was not found", order.CustomerId);
             return null;
         }
 
-        var itemList = await _context.Items
-            .AsNoTracking()
-            .Select(i => i.ExternalBatchId)
-            .ToListAsync();
+        //var itemList = await _context.Items
+        //    .AsNoTracking()
+        //    .Select(i => i.ExternalBatchId)
+        //    .ToListAsync();
 
-        bool validItems = true;
+        //bool validItems = true;
+
+        //foreach (var item in order.OrderItems)
+        //{
+        //    if (!itemList.Contains(item.ItemId))
+        //    {
+        //        validItems = false;
+        //    }
+        //}
+
+        var itemIdList = new List<Guid>();
 
         foreach (var item in order.OrderItems)
         {
-            if (!itemList.Contains(item.ItemId))
-            {
-                validItems = false;
-            }
+            itemIdList.Add(item.ItemId);
         }
 
-        if (!validItems)
+        // Testing new valid items check ----------------------------------------------------------- << !
+
+        var validItems = await _context.Items
+            .Where(i => itemIdList.Contains(i.ExternalBatchId))
+            .ToListAsync();
+
+        if (itemIdList.Count != validItems.Count)
         {
             Log.Error("Invalid Order: Order contains invalid items.");
             return null;
+        }
+
+        order.Id = Guid.NewGuid();
+
+        foreach (var item in order.OrderItems)
+        {
+            item.Order = order;
+            item.OrderId = order.Id;
+            item.Item = validItems.Single(i => i.ExternalBatchId == item.ItemId);
         }
 
         _context.Orders.Add(order);
@@ -67,6 +89,7 @@ public class OrderRepo : IOrderRepo
     {
         var dbOrder = await _context.Orders
             .AsNoTracking()
+            .Include(o => o.OrderItems)
             .SingleOrDefaultAsync(x => x.Id == id);
 
         if (dbOrder == null)
@@ -74,10 +97,13 @@ public class OrderRepo : IOrderRepo
             return null;
         }
 
-        _context.Orders.Attach(dbOrder);
-        _context.Orders.Remove(dbOrder);
+        await _context.OrderItems
+            .Where(oi => oi.OrderId == id)
+            .ExecuteDeleteAsync();
 
-        await _context.SaveChangesAsync();
+        await _context.Orders
+            .Where(o => o.Id == id)
+            .ExecuteDeleteAsync();
 
         return dbOrder;
     }
@@ -160,13 +186,28 @@ public class OrderRepo : IOrderRepo
     {
         var dbOrder = await _context.Orders
             .AsNoTracking()
+            .Include(o => o.OrderItems)
             .SingleOrDefaultAsync(p => p.Id == order.Id);
 
         if (dbOrder == null)
         {
+            Log.Error("--> Order with id {Id} not found for updating.", order.Id);
             return null;
         }
 
+        if(order.CustomerId != null)
+        {
+            var dbCustomer = await _context.Customers
+            .AsNoTracking()
+            .AnyAsync(c => c.ExternalId == order.CustomerId);
+
+            if (dbCustomer)
+            {
+                Log.Error("Could not update order: Customer with id {Id} was not found", order.CustomerId);
+                return null;
+            }
+        }
+        var oldDbOrder = dbOrder;
         dbOrder = order;
         _context.Entry(dbOrder).State = EntityState.Modified;
 
@@ -187,6 +228,6 @@ public class OrderRepo : IOrderRepo
 
         await _context.SaveChangesAsync();
 
-        return dbOrder;
+        return oldDbOrder;
     }
 }

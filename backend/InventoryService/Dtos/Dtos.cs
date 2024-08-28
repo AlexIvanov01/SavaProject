@@ -20,3 +20,7 @@ public record ProductUpdateDto(string? Name, string? Description, string? Brand,
 
 public record BatchUpdateDto(string? Lot, int? Quantity, decimal? PurchasePrice,
     decimal? SellPrice, DateTime? ExpirationDate);
+
+public record OrderPublishedDto(IEnumerable<OrderItemPublishedDto> OrderItems, string Event);
+
+public record OrderItemPublishedDto(Guid ItemId, int OrderItemQuantity);

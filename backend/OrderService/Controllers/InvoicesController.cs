@@ -49,19 +49,19 @@ namespace OrderService.Controllers
 
                 List<OrderFullReadDto> dtos = [];
 
-                foreach (var item in invoiceItems)
+                foreach (var invoice in invoiceItems)
                 {
                     OrderFullReadDto dto = new()
                     {
-                        Id = item.Id,
-                        OrderDate = item.OrderDate,
-                        ShippedDate = item.ShippedDate,
-                        ShippingAddress = item.ShippingAddress,
-                        Customer = _mapper.Map<CustomerReadDto>(item.Customer),
-                        Invoice = _mapper.Map<InvoiceReadDto>(item.Invoice)
+                        Id = invoice.Order.Id,
+                        OrderDate = invoice.Order.OrderDate,
+                        ShippedDate = invoice.Order.ShippedDate,
+                        ShippingAddress = invoice.Order.ShippingAddress,
+                        Customer = _mapper.Map<CustomerReadDto>(invoice.Order.Customer),
+                        Invoice = _mapper.Map<InvoiceReadDto>(invoice)
                     };
 
-                    foreach (var orderItem in item.OrderItems)
+                    foreach (var orderItem in invoice.Order.OrderItems)
                     {
                         ItemReadDto itemReadDto = new()
                         {
@@ -99,15 +99,15 @@ namespace OrderService.Controllers
         }
 
         [HttpGet("{id}", Name = "GetInvoiceById")]
-        public async Task<ActionResult<InvoiceReadDto>> GetInvoiceById(int id)
+        public async Task<ActionResult<OrderFullReadDto>> GetInvoiceById(int id)
         {
             try
             {
                 Log.Information("--> Getting an invoice with id {Id}........", id);
 
-                var invoiceItem = await _repository.GetInvocieByIdAsync(id);
+                var invoice = await _repository.GetInvocieByIdAsync(id);
 
-                if (invoiceItem == null)
+                if (invoice == null)
                 {
                     Log.Warning("Invoice with id {Id} not found.", id);
                     return NotFound();
@@ -115,8 +115,32 @@ namespace OrderService.Controllers
 
                 Log.Information("--> Fetched an invoice with id {Id}.", id);
 
-                // Fix return type to full order dto ---------------------------------------------------------------------- << !
-                return Ok(_mapper.Map<InvoiceReadDto>(invoiceItem));
+                OrderFullReadDto dto = new()
+                {
+                    Id = invoice.Order.Id,
+                    OrderDate = invoice.Order.OrderDate,
+                    ShippedDate = invoice.Order.ShippedDate,
+                    ShippingAddress = invoice.Order.ShippingAddress,
+                    Customer = _mapper.Map<CustomerReadDto>(invoice.Order.Customer),
+                    Invoice = _mapper.Map<InvoiceReadDto>(invoice)
+                };
+
+                foreach (var orderItem in invoice.Order.OrderItems)
+                {
+                    ItemReadDto itemReadDto = new()
+                    {
+                        ExternalBatchId = orderItem.ItemId,
+                        ExternalProductId = orderItem.Item.ExternalProductId,
+                        Name = orderItem.Item.Name,
+                        Price = orderItem.Item.Price,
+                        Lot = orderItem.Item.Lot,
+                        ExpirationDate = orderItem.Item.ExpirationDate,
+                        Quantity = orderItem.OrderItemQuantity
+                    };
+
+                    dto.Items.Add(itemReadDto);
+                }
+                    return Ok(dto);
             }
             catch (Exception ex)
             {
@@ -134,18 +158,18 @@ namespace OrderService.Controllers
 
                 var invoiceModel = _mapper.Map<Invoice>(invoiceCreateDto);
 
-                var orderItem = await _repository.CreateInvocieAsync(invoiceModel, orderId);
+                var nullCheck = await _repository.CreateInvocieAsync(invoiceModel, orderId);
 
-                if (orderItem == null)
+                if (nullCheck == null)
                 {
                     return NotFound();
                 }
 
-                Log.Information("--> Created invoice for order: {Id}", orderItem.Id);
+                Log.Information("--> Created invoice for order: {Id}", orderId);
 
-                var orderReadDto = _mapper.Map<OrderReadDto>(orderItem);
+                var invoiceReadDto = _mapper.Map<InvoiceReadDto>(invoiceModel);
 
-                return CreatedAtRoute(nameof(OrdersController.GetOrderById), new { Id = orderReadDto.Id }, orderReadDto);
+                return CreatedAtRoute(nameof(GetInvoiceById), new { Id = invoiceReadDto.Id }, invoiceReadDto);
             }
             catch (Exception ex)
             {

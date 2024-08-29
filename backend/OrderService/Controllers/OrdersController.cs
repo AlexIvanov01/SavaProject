@@ -32,7 +32,7 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<OrderPageReadDto>> GetAllOrdersAsync(
         Guid? cursor,
         Guid? customerId,
-        [Range(1, 100)] int pageSize = 10)
+        [Range(1, 50)] int pageSize = 10)
     {
         try
         {
@@ -113,15 +113,15 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id}", Name = "GetOrderById")]
-    public async Task<ActionResult<OrderReadDto>> GetOrderById(Guid id)
+    public async Task<ActionResult<OrderFullReadDto>> GetOrderById(Guid id)
     {
         try
         {
             Log.Information("--> Getting an order with id {Id}........", id);
 
-            var order = await _repository.GetOrderByIdAsync(id);
+            var orderModel = await _repository.GetOrderByIdAsync(id);
 
-            if (order == null)
+            if (orderModel == null)
             {
                 Log.Warning("Order with id {Id} not found.", id);
                 return NotFound();
@@ -129,7 +129,33 @@ public class OrdersController : ControllerBase
 
             Log.Information("--> Fetched an order with id {Id}.", id);
 
-            return Ok(_mapper.Map<OrderReadDto>(order));
+            OrderFullReadDto orderFullReadDto = new()
+            {
+                Id = orderModel.Id,
+                OrderDate = orderModel.OrderDate,
+                ShippedDate = orderModel.ShippedDate,
+                ShippingAddress = orderModel.ShippingAddress,
+                Customer = _mapper.Map<CustomerReadDto>(orderModel.Customer),
+                Invoice = _mapper.Map<InvoiceReadDto>(orderModel.Invoice)
+            };
+
+            foreach (var orderItem in orderModel.OrderItems)
+            {
+                ItemReadDto itemReadDto = new()
+                {
+                    ExternalBatchId = orderItem.ItemId,
+                    ExternalProductId = orderItem.Item.ExternalProductId,
+                    Name = orderItem.Item.Name,
+                    Price = orderItem.Item.Price,
+                    Lot = orderItem.Item.Lot,
+                    ExpirationDate = orderItem.Item.ExpirationDate,
+                    Quantity = orderItem.OrderItemQuantity
+                };
+
+                orderFullReadDto.Items.Add(itemReadDto);
+            }
+
+            return Ok(orderFullReadDto);
         }
         catch (Exception ex)
         {
@@ -139,9 +165,8 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderReadDto>> CreateOrder(OrderCreateDto orderCreateDto)
+    public async Task<ActionResult<OrderFullReadDto>> CreateOrder(OrderCreateDto orderCreateDto)
     {
-        OrderReadDto orderReadDto;
         Order orderModel;
 
         try
@@ -156,8 +181,6 @@ public class OrdersController : ControllerBase
             }
 
             Log.Information("--> Customer order created: {Id}", orderModel.Id);
-
-            orderReadDto = _mapper.Map<OrderReadDto>(orderModel);
         }
         catch (Exception ex)
         {
@@ -181,7 +204,33 @@ public class OrdersController : ControllerBase
             Log.Error(ex, "Error with publishing order message: {Message}", ex.Message);
         }
 
-        return CreatedAtRoute(nameof(GetOrderById), new { orderReadDto.Id }, orderReadDto);
+        OrderFullReadDto orderFullReadDto = new()
+        {
+            Id = orderModel.Id,
+            OrderDate = orderModel.OrderDate,
+            ShippedDate = orderModel.ShippedDate,
+            ShippingAddress = orderModel.ShippingAddress,
+            Customer = _mapper.Map<CustomerReadDto>(orderModel.Customer),
+            Invoice = _mapper.Map<InvoiceReadDto>(orderModel.Invoice)
+        };
+
+        foreach (var orderItem in orderModel.OrderItems)
+        {
+            ItemReadDto itemReadDto = new()
+            {
+                ExternalBatchId = orderItem.ItemId,
+                ExternalProductId = orderItem.Item.ExternalProductId,
+                Name = orderItem.Item.Name,
+                Price = orderItem.Item.Price,
+                Lot = orderItem.Item.Lot,
+                ExpirationDate = orderItem.Item.ExpirationDate,
+                Quantity = orderItem.OrderItemQuantity
+            };
+
+            orderFullReadDto.Items.Add(itemReadDto);
+        }
+
+        return CreatedAtRoute(nameof(GetOrderById), new { orderFullReadDto.Id }, orderFullReadDto);
     }
 
     [HttpPut("{id}")]

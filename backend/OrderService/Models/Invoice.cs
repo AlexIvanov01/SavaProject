@@ -9,6 +9,7 @@ public class Invoice
     public int Id { get; set; }
 
     public DateTime? InvoiceDate { get; set; }
+    public Guid OrderId { get; set; }
     public Order Order { get; set; } = new();
 
     [MaxLength(50)]

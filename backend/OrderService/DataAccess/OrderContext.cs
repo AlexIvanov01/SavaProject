@@ -3,12 +3,8 @@ using OrderService.Models;
 
 namespace OrderService.DataAccess;
 
-public class OrderContext : DbContext
+public class OrderContext(DbContextOptions options) : DbContext(options)
 {
-    public OrderContext(DbContextOptions options) : base(options)
-    {
-    }
-
     public DbSet<Order> Orders { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<Customer> Customers { get; set; }
@@ -32,10 +28,10 @@ public class OrderContext : DbContext
             .HasForeignKey(oi => oi.ItemId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Invoice>()
-            .HasOne(i => i.Order)
-            .WithOne(o => o.Invoice)
-            .OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.Invoice)
+            .WithOne(i => i.Order)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Customer>()
             .HasMany(c => c.Orders)

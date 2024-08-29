@@ -27,28 +27,13 @@ public class OrderRepo : IOrderRepo
 
         var dbCustomer = await _context.Customers
             .AsNoTracking()
-            .AnyAsync(c => c.ExternalId == order.CustomerId);
+            .SingleOrDefaultAsync(c => c.ExternalId == order.CustomerId);
 
-        if (!dbCustomer)
+        if (dbCustomer == null)
         {
             Log.Error("Invalid order: Customer with id {Id} was not found", order.CustomerId);
             return null;
         }
-
-        //var itemList = await _context.Items
-        //    .AsNoTracking()
-        //    .Select(i => i.ExternalBatchId)
-        //    .ToListAsync();
-
-        //bool validItems = true;
-
-        //foreach (var item in order.OrderItems)
-        //{
-        //    if (!itemList.Contains(item.ItemId))
-        //    {
-        //        validItems = false;
-        //    }
-        //}
 
         var itemIdList = new List<Guid>();
 
@@ -56,8 +41,6 @@ public class OrderRepo : IOrderRepo
         {
             itemIdList.Add(item.ItemId);
         }
-
-        // Testing new valid items check ----------------------------------------------------------- << !
 
         var validItems = await _context.Items
             .Where(i => itemIdList.Contains(i.ExternalBatchId))
@@ -81,6 +64,8 @@ public class OrderRepo : IOrderRepo
         _context.Orders.Add(order);
 
         await _context.SaveChangesAsync();
+
+        order.Customer = dbCustomer;
 
         return order;
     }

@@ -23,7 +23,6 @@ public class Order
 
     public Guid? CustomerId { get; set; }
     public Customer? Customer { get; set; }
-    public int? InvoiceId { get; set; }
     public Invoice? Invoice { get; set; }
     public List<OrderItem> OrderItems { get; set; } = [];
 }

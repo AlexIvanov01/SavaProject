@@ -91,10 +91,16 @@ namespace OrderService.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("char(36)");
+
                     b.Property<decimal?>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique();
 
                     b.ToTable("Invoices");
                 });
@@ -135,9 +141,6 @@ namespace OrderService.Migrations
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int?>("InvoiceId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("OrderDate")
                         .HasColumnType("datetime(6)");
 
@@ -155,9 +158,6 @@ namespace OrderService.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("InvoiceId")
-                        .IsUnique();
 
                     b.ToTable("Orders");
                 });
@@ -180,6 +180,17 @@ namespace OrderService.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("OrderService.Models.Invoice", b =>
+                {
+                    b.HasOne("OrderService.Models.Order", "Order")
+                        .WithOne("Invoice")
+                        .HasForeignKey("OrderService.Models.Invoice", "OrderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("OrderService.Models.Order", b =>
                 {
                     b.HasOne("OrderService.Models.Customer", "Customer")
@@ -187,14 +198,7 @@ namespace OrderService.Migrations
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("OrderService.Models.Invoice", "Invoice")
-                        .WithOne("Order")
-                        .HasForeignKey("OrderService.Models.Order", "InvoiceId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Customer");
-
-                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("OrderService.Models.OrderItem", b =>
@@ -221,12 +225,6 @@ namespace OrderService.Migrations
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("OrderService.Models.Invoice", b =>
-                {
-                    b.Navigation("Order")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("OrderService.Models.Item", b =>
                 {
                     b.Navigation("ItemOrders");
@@ -234,6 +232,8 @@ namespace OrderService.Migrations
 
             modelBuilder.Entity("OrderService.Models.Order", b =>
                 {
+                    b.Navigation("Invoice");
+
                     b.Navigation("OrderItems");
                 });
 #pragma warning restore 612, 618

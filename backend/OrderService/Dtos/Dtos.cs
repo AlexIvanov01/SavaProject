@@ -11,19 +11,17 @@ public record CustomerReadDto(Guid ExternalId, string Name, string CompanyName,
      string Email, string PhoneNumber, string Address, string City,
     string Country, string BankName, string IBAN, string BIC, string VATNumber, string UIC);
     
-
-// InvoiceReadDto should mostly be not used, instead use Full order dto -------------------------------------------------- << !
-public record InvoiceReadDto(int Id, DateTime InvoiceDate, OrderReadDto Order,
+public record InvoiceReadDto(int Id, DateTime InvoiceDate, Guid OrderId,
      string InvoiceStatus, decimal TotalAmount);
 
 public record OrderItemReadDto(Guid ItemId, int OrderItemQuantity);
 
-public record OrderItemUpdateDto([Required] Guid ItemId, [Required] int OrderItemQuantity);
+public record OrderItemUpdateDto([Required] Guid ItemId, [Required]  [Range(1, 1000)] int OrderItemQuantity);
 
 public record OrderItemPublishedDto(Guid ItemId, int OrderItemQuantity);
-public record OrderItemCreateDto([Required] Guid ItemId, [Required] int OrderItemQuantity);
+public record OrderItemCreateDto([Required] Guid ItemId, [Required] [Range(1, 1000)] int OrderItemQuantity);
 
-public record InvoiceCreateDto(int? ID, DateTime InvoiceDate,
+public record InvoiceCreateDto(int ID, DateTime InvoiceDate,
      string InvoiceStatus, decimal TotalAmount);
 
 public record OrderCreateDto(DateTime OrderDate, DateTime? ShippedDate, 

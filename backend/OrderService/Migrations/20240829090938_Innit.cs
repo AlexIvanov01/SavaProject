@@ -40,22 +40,6 @@ namespace OrderService.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Invoices",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    InvoiceDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    InvoiceStatus = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Invoices", x => x.Id);
-                })
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
@@ -81,8 +65,7 @@ namespace OrderService.Migrations
                     ShippedDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     ShippingAddress = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true),
                     OrderStatus = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
-                    CustomerId = table.Column<Guid>(type: "char(36)", nullable: true),
-                    InvoiceId = table.Column<int>(type: "int", nullable: true)
+                    CustomerId = table.Column<Guid>(type: "char(36)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -92,13 +75,30 @@ namespace OrderService.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "ExternalId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Invoices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    InvoiceDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    OrderId = table.Column<Guid>(type: "char(36)", nullable: false),
+                    InvoiceStatus = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Invoices", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_Invoices_InvoiceId",
-                        column: x => x.InvoiceId,
-                        principalTable: "Invoices",
+                        name: "FK_Invoices_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -118,7 +118,7 @@ namespace OrderService.Migrations
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "ExternalBatchId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_OrderItems_Orders_OrderId",
                         column: x => x.OrderId,
@@ -129,6 +129,12 @@ namespace OrderService.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Invoices_OrderId",
+                table: "Invoices",
+                column: "OrderId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_ItemId",
                 table: "OrderItems",
                 column: "ItemId");
@@ -137,17 +143,14 @@ namespace OrderService.Migrations
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_InvoiceId",
-                table: "Orders",
-                column: "InvoiceId",
-                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Invoices");
+
             migrationBuilder.DropTable(
                 name: "OrderItems");
 
@@ -159,9 +162,6 @@ namespace OrderService.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
-
-            migrationBuilder.DropTable(
-                name: "Invoices");
         }
     }
 }

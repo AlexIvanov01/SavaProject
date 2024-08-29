@@ -39,6 +39,7 @@ public class InvoiceRepo : IInvoiceRepo
             }
         }
         _context.Entry(dbInvoice).Property(p => p.Id).IsModified = false;
+        _context.Entry(dbInvoice).Property(p => p.OrderId).IsModified = false;
         _context.Entry(dbInvoice).Property(p => p.Order).IsModified = false;
 
         await _context.SaveChangesAsync();
@@ -46,57 +47,60 @@ public class InvoiceRepo : IInvoiceRepo
         return dbInvoice;
     }
 
-    public async Task<Order?> GetInvocieByOrderIdAsync(Guid orderId)
+    public async Task<Invoice?> GetInvocieByOrderIdAsync(Guid orderId)
     {
-        var invoice = await _context.Orders
+        var invoice = await _context.Invoices
                 .AsNoTracking()
-                .Where(o => o.Id == orderId)
-                .Include(o => o.OrderItems)
+                .Where(i => i.OrderId == orderId)
+                .Include(i => i.Order)
+                .ThenInclude(o => o.OrderItems)
                 .ThenInclude(oi => oi.Item)
-                .Include(o => o.Invoice)
-                .Include(o => o.Customer)
+                .Include(i => i.Order)
+                .ThenInclude(o => o.Customer)
                 .SingleOrDefaultAsync();
 
         return invoice;
     }
 
-    public async Task<Order?> GetInvocieByIdAsync(int id)
+    public async Task<Invoice?> GetInvocieByIdAsync(int id)
     {
-        return await _context.Orders
+        return await _context.Invoices
             .AsNoTracking()
-            .Where(o => o.InvoiceId == id)
-            .Include(o => o.Invoice)
-            .Include(o => o.Customer)
-            .Include(o => o.OrderItems)
+            .Where(i => i.Id == id)
+            .Include(i => i.Order)
+            .ThenInclude(o => o.Customer)
+            .Include(i => i.Order)
+            .ThenInclude(o => o.OrderItems)
             .ThenInclude(oi => oi.Item)
             .SingleOrDefaultAsync();
     }
 
-    public async Task<IEnumerable<Order>> GetAllInvociesAsync(int? cursor, int pageSize)
+    public async Task<IEnumerable<Invoice>> GetAllInvociesAsync(int? cursor, int pageSize)
     {
         if (cursor != null)
         {
-            return await _context.Orders
+            return await _context.Invoices
                 .AsNoTracking()
-                .Include(o => o.Invoice)
-                .Where(o => o.InvoiceId != null && o.InvoiceId > cursor)
-                .Include(o => o.OrderItems)
+                .Where(i => i.Id > cursor)
+                .Include(i => i.Order)
+                .ThenInclude(o => o.OrderItems)
                 .ThenInclude(oi => oi.Item)
-                .Include(o => o.Customer)
-                .OrderBy(o => o.InvoiceId)
+                .Include(i => i.Order)
+                .ThenInclude(o => o.Customer)
+                .OrderBy(i => i.Id)
                 .Take(pageSize)
                 .ToArrayAsync();
         }
-        return await _context.Orders
-            .AsNoTracking()
-            .Include(o => o.Invoice)
-            .Where(o => o.InvoiceId != null)
-            .Include(o => o.Customer)
-            .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Item)
-            .OrderBy(o => o.InvoiceId)
-            .Take(pageSize)
-            .ToArrayAsync();
+        return await _context.Invoices
+                .AsNoTracking()
+                .Include(i => i.Order)
+                .ThenInclude(o => o.OrderItems)
+                .ThenInclude(oi => oi.Item)
+                .Include(i => i.Order)
+                .ThenInclude(o => o.Customer)
+                .OrderBy(i => i.Id)
+                .Take(pageSize)
+                .ToArrayAsync();
     }
 
     public async Task<Invoice?> DeleteInvoiceAsync(int id)
@@ -110,22 +114,23 @@ public class InvoiceRepo : IInvoiceRepo
             return null;
         }
 
-        int? newInvoiceId = null;
-
-        await _context.Orders
-            .Where(i => i.InvoiceId == id)
-            .ExecuteUpdateAsync(p => p.SetProperty(o => o.InvoiceId , newInvoiceId));
-
-        _context.Invoices.Attach(dbInvoice);
-        _context.Invoices.Remove(dbInvoice);
-
-        await _context.SaveChangesAsync();
+        await _context.Invoices
+            .Where(i => i.Id == id)
+            .ExecuteDeleteAsync();
 
         return dbInvoice;
     }
 
-    public async Task<Order?> CreateInvocieAsync(Invoice invoice, Guid orderId)
+    public async Task<Invoice?> CreateInvocieAsync(Invoice invoice, Guid orderId)
     {
+        bool invoiceCheck = await _context.Invoices.AnyAsync(i => i.OrderId == orderId);
+
+        if(invoiceCheck)
+        {
+            Log.Error("Invoice creation validation error: Order already has an invoice");
+            return null;
+        }
+
         var order = await _context.Orders
             .SingleOrDefaultAsync(p => p.Id == orderId);
 
@@ -135,19 +140,13 @@ public class InvoiceRepo : IInvoiceRepo
             return null;
         }
 
-        if( order.InvoiceId != null)
-        {
-            Log.Error("Invoice creation validation error: Order already has an invoice");
-            return null;
-        }
+        invoice.Order = order;
 
         _context.Invoices.Add(invoice);
-        order.Invoice = invoice;
-        order.InvoiceId = invoice.Id;
 
         await _context.SaveChangesAsync();
 
-        return order;
+        return invoice;
     }
 
     public async Task<int> GetInvoiceCountAsync()

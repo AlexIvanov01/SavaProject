@@ -1,0 +1,169 @@
+{
+    "Routes": [
+        // Authentication Service
+        {
+            "UpstreamPathTemplate": "/api/Account",
+            "UpstreamHttpMethod": [ "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 83
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Account"
+        },
+        // Inventory Service
+        {
+            "UpstreamPathTemplate": "/api/Products",
+            "UpstreamHttpMethod": [ "Get", "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 80
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Products",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "User"
+            }
+        },
+        {
+            "UpstreamPathTemplate": "/api/Products/{id}",
+            "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 80
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Products/{id}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "Administrator"
+            }
+        },
+        {
+            "UpstreamPathTemplate": "/api/Batches/{ProductId}",
+            "UpstreamHttpMethod": [ "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 80
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Batches/{id}"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Batches/{id}",
+            "UpstreamHttpMethod": [ "Put", "Delete" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 80
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Batches/{id}"
+        },
+        // Customer Service
+        {
+            "UpstreamPathTemplate": "/api/Customers",
+            "UpstreamHttpMethod": [ "Get", "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 82
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Customers"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Customers/{id}",
+            "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 82
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Customers/{id}"
+        },
+        // Order Service
+        {
+            "UpstreamPathTemplate": "/api/Orders",
+            "UpstreamHttpMethod": [ "Get", "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 81
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Orders"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Orders/{id}",
+            "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 81
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Orders/{id}"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Invoices",
+            "UpstreamHttpMethod": [ "Get" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 81
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Invoices"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Invoices/{id}",
+            "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 81
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Invoices/{id}"
+        },
+        {
+            "UpstreamPathTemplate": "/api/Invoices/{orderId}",
+            "UpstreamHttpMethod": [ "Post" ],
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 81
+                }
+            ],
+            "DownstreamPathTemplate": "/api/Invoices/{orderId}"
+        }
+    ],
+    "GlobalConfiguration": {
+        "BaseUrl": "http://localhost:800"
+    }
+}

@@ -44,8 +44,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 
-app.UseAuthorization();
-
 app.MapControllers();
 
 await PrepDB.PrepPopulation(app);

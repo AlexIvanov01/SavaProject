@@ -7,8 +7,8 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 83
+                    "Host": "authentication-clusterip-srv",
+                    "Port": 80
                 }
             ],
             "DownstreamPathTemplate": "/api/Account"
@@ -20,7 +20,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
+                    "Host": "inventory-clusterip-srv",
                     "Port": 80
                 }
             ],
@@ -30,7 +30,10 @@
                 "AllowedScopes": []
             },
             "RouteClaimsRequirement": {
-                "Role": "User"
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
             }
         },
         {
@@ -39,7 +42,7 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
+                    "Host": "inventory-clusterip-srv",
                     "Port": 80
                 }
             ],
@@ -58,11 +61,21 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
+                    "Host": "inventory-clusterip-srv",
                     "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Batches/{id}"
+            "DownstreamPathTemplate": "/api/Batches/{Productid}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Batches/{id}",
@@ -70,11 +83,18 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
+                    "Host": "inventory-clusterip-srv",
                     "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Batches/{id}"
+            "DownstreamPathTemplate": "/api/Batches/{id}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "Administrator"
+            }
         },
         // Customer Service
         {
@@ -83,11 +103,21 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 82
+                    "Host": "customer-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Customers"
+            "DownstreamPathTemplate": "/api/Customers",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Customers/{id}",
@@ -95,11 +125,18 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 82
+                    "Host": "customer-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Customers/{id}"
+            "DownstreamPathTemplate": "/api/Customers/{id}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "Administrator"
+            }
         },
         // Order Service
         {
@@ -108,11 +145,21 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 81
+                    "Host": "order-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Orders"
+            "DownstreamPathTemplate": "/api/Orders",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Orders/{id}",
@@ -120,11 +167,18 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 81
+                    "Host": "order-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Orders/{id}"
+            "DownstreamPathTemplate": "/api/Orders/{id}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "Administrator"
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Invoices",
@@ -132,11 +186,21 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 81
+                    "Host": "order-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Invoices"
+            "DownstreamPathTemplate": "/api/Invoices",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Invoices/{id}",
@@ -144,11 +208,18 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 81
+                    "Host": "order-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Invoices/{id}"
+            "DownstreamPathTemplate": "/api/Invoices/{id}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": "Administrator"
+            }
         },
         {
             "UpstreamPathTemplate": "/api/Invoices/{orderId}",
@@ -156,11 +227,21 @@
             "DownstreamScheme": "http",
             "DownstreamHostAndPorts": [
                 {
-                    "Host": "localhost",
-                    "Port": 81
+                    "Host": "order-clusterip-srv",
+                    "Port": 80
                 }
             ],
-            "DownstreamPathTemplate": "/api/Invoices/{orderId}"
+            "DownstreamPathTemplate": "/api/Invoices/{orderId}",
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            },
+            "RouteClaimsRequirement": {
+                "Role": [
+                    "Administrator",
+                    "User"
+                ]
+            }
         }
     ],
     "GlobalConfiguration": {

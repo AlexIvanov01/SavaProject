@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: inv-loadbalancer-srv
+  name: apigtw-loadbalancer-srv
 spec:
   type: LoadBalancer
   selector:
-    app: inventoryservice
+    app: ocelotapigateway
   ports:
     - protocol: TCP
-      port: 81
+      port: 80
       targetPort: 80

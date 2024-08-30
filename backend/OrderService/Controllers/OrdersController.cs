@@ -73,11 +73,12 @@ public class OrdersController : ControllerBase
                     OrderDate = item.OrderDate,
                     ShippedDate = item.ShippedDate,
                     ShippingAddress = item.ShippingAddress,
+                    OrderStatus = item.OrderStatus,
                     Customer = _mapper.Map<CustomerReadDto>(item.Customer),
                     Invoice = _mapper.Map<InvoiceReadDto>(item.Invoice)
                 };
 
-                foreach(var orderItem in item.OrderItems)
+                foreach (var orderItem in item.OrderItems)
                 {
                     ItemReadDto itemReadDto = new()
                     {
@@ -99,7 +100,7 @@ public class OrdersController : ControllerBase
             var pageDto = new OrderPageReadDto
             {
                 OrderFullReadDtos = dtos,
-                Cursor = dtos[dtos.Count-1].Id,
+                Cursor = dtos[dtos.Count - 1].Id,
                 Pages = (int)pageCount
             };
 
@@ -135,6 +136,7 @@ public class OrdersController : ControllerBase
                 OrderDate = orderModel.OrderDate,
                 ShippedDate = orderModel.ShippedDate,
                 ShippingAddress = orderModel.ShippingAddress,
+                OrderStatus = orderModel.OrderStatus,
                 Customer = _mapper.Map<CustomerReadDto>(orderModel.Customer),
                 Invoice = _mapper.Map<InvoiceReadDto>(orderModel.Invoice)
             };
@@ -210,6 +212,7 @@ public class OrdersController : ControllerBase
             OrderDate = orderModel.OrderDate,
             ShippedDate = orderModel.ShippedDate,
             ShippingAddress = orderModel.ShippingAddress,
+            OrderStatus = orderModel.OrderStatus,
             Customer = _mapper.Map<CustomerReadDto>(orderModel.Customer),
             Invoice = _mapper.Map<InvoiceReadDto>(orderModel.Invoice)
         };

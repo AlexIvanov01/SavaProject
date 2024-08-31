@@ -1,4 +1,7 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
+using CustomerService;
+using InventoryService;
 using OrderService.Dtos;
 using OrderService.Models;
 
@@ -28,5 +31,14 @@ public class OrderProfiles : Profile
 
         CreateMap<OrderItem, OrderItemPublishedDto>();
         CreateMap<OrderItemUpdateDto, OrderItemPublishedDto>();
+
+        CreateMap<GrpcInventoryModel, Item>()
+            .ForMember(dest => dest.ExternalProductId, opt => opt.MapFrom(src => Guid.Parse(src.ExternalProductId)))
+            .ForMember(dest => dest.ExternalBatchId, opt => opt.MapFrom(src => Guid.Parse(src.ExternalBatchId)))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => decimal.Parse(src.Price)))
+            .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => DateTime.Parse(src.ExpirationDate)));
+
+        CreateMap<GrpcCustomerModel, Customer>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => Guid.Parse(src.ExternalId)));
     }
 }

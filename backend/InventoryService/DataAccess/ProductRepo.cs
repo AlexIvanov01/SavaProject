@@ -184,6 +184,11 @@ public class ProductRepo : IProductRepo
         var OrderItemsDict = OrderItems.ToDictionary(oi => oi.ItemId, oi => oi.OrderItemQuantity);
 
         var batches =  await _context.ProductBatches
+           .Select(b => new ProductBatch
+           {
+               Id = b.Id,
+               Quantity = b.Quantity
+           })
            .Where(b => OrderItemsDict.Keys.Contains(b.Id))
            .ToListAsync();
 
@@ -200,6 +205,11 @@ public class ProductRepo : IProductRepo
         var OrderItemsDict = OrderItems.ToDictionary(oi => oi.ItemId, oi => oi.OrderItemQuantity);
 
         var batches = await _context.ProductBatches
+           .Select(b => new ProductBatch
+           {
+               Id = b.Id,
+               Quantity = b.Quantity
+           })
            .Where(b => OrderItemsDict.Keys.Contains(b.Id))
            .ToListAsync();
 
@@ -209,5 +219,18 @@ public class ProductRepo : IProductRepo
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetAllProductBatchesAsync()
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .Include(p => p.Batches)
+            .Select(p => new Product
+            {
+                Name = p.Name,
+                Batches = p.Batches
+            })
+            .ToArrayAsync();
     }
 }

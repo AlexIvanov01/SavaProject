@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "InventoryService";
+
+service GrpcInventory{
+	rpc GetAllItems (GetAllRequest) returns (InventoryResponse);
+}
+
+message GetAllRequest {}
+
+message GrpcInventoryModel{
+	string externalBatchId = 1; 
+	string externalProductId = 2;
+	string name = 3;
+	string price = 4;
+	string lot = 5;
+	string expirationDate = 6;
+}
+
+message InventoryResponse {
+	repeated GrpcInventoryModel item = 1;
+}
+

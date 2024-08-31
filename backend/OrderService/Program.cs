@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using OrderService.AsyncDataServices;
 using OrderService.DataAccess;
 using OrderService.EventProcessing;
+using OrderService.SyncDataServices.Grpc;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,8 @@ builder.Services.AddScoped<IOrderRepo, OrderRepo>();
 builder.Services.AddScoped<IInvoiceRepo, InvoiceRepo>();
 builder.Services.AddScoped<ICustomerRepo, CustomerRepo>();
 builder.Services.AddScoped<IItemRepo, ItemRepo>();
+builder.Services.AddScoped<IInventoryDataClient, InventoryDataClient>();
+builder.Services.AddScoped<ICustomerDataClient, CustomerDataClient>();
 builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
 builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,58 @@ public class ItemRepo : IItemRepo
     public async Task<bool> ExternalItemExistsAsync(Guid? externalId)
     {
         return await _context.Items.AnyAsync(i => i.ExternalBatchId == externalId);
+    }
+
+    public async Task SyncItemsAsync(IEnumerable<Item> items)
+    {
+        var dbItemArray = await _context.Items
+            .AsNoTracking()
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            if (!dbItemArray.Exists(i => i.ExternalBatchId == item.ExternalBatchId))
+            {
+                _context.Items.Add(item);
+            }
+            else
+            {
+                _context.Items.Update(item);
+            }
+        }
+        await _context.SaveChangesAsync();
+
+        List<Item> invalidItems = [];
+
+        foreach (var item in dbItemArray)
+        {
+            if (!items.ToList().Exists(i => i.ExternalBatchId == item.ExternalBatchId))
+            {
+                invalidItems.Add(item);
+            }
+        }
+        if (invalidItems.Count > 0)
+        {
+           var validatedItems = await _context.OrderItems
+                .Select(io => io.ItemId)
+                .ToListAsync();
+
+            foreach(var itemId in validatedItems)
+            {
+                var itemToBeRemoved = invalidItems.Find(c => c.ExternalBatchId == itemId);
+                if (itemToBeRemoved != null)
+                {
+                    invalidItems.Remove(itemToBeRemoved);
+                }
+            }
+
+            if (invalidItems.Count > 0)
+            {
+                await _context.Items
+                .Where(i => invalidItems.Contains(i))
+                .ExecuteDeleteAsync();
+            }
+        }
     }
 
     public async Task UpdateItemAsync(Item item)

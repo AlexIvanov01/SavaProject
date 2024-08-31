@@ -14,5 +14,8 @@ public class CustomersProfiles : Profile
 
         CreateMap<Customer, CustomerPublishedDto>()
             .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id));
+
+        CreateMap<Customer, GrpcCustomerModel>()
+            .ForMember(dest => dest.ExternalId, opt => opt.MapFrom(src => src.Id.ToString()));
     }
 }

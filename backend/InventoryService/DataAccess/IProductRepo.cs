@@ -19,5 +19,6 @@ public interface IProductRepo
     Task<ProductBatch?> DeleteBatchAsync(Guid id);
     Task DecrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems);
     Task IncrementBatchesAsync(IEnumerable<OrderItemPublishedDto> OrderItems);
+    Task<IEnumerable<Product>> GetAllProductBatchesAsync();
 
 }

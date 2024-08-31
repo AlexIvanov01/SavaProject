@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using OrderService.Models;
 
@@ -11,5 +12,6 @@ public interface ICustomerRepo
     Task АddCustomerAsync(Customer customer);
     Task DeleteCustomerAsync(Guid id);
     Task UpdateCustomerAsync(Customer customer);
+    Task SyncCustomersAsync(IEnumerable<Customer> customers);
 
 }

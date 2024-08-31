@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -70,5 +71,57 @@ public class CustomerRepo : ICustomerRepo
     public async Task<bool> ExternalCustomerExistsAsync(Guid? externalId)
     {
         return await _context.Customers.AnyAsync(i => i.ExternalId == externalId);
+    }
+
+    public async Task SyncCustomersAsync(IEnumerable<Customer> customers)
+    {
+        var dbCustomerArray = await _context.Customers
+            .AsNoTracking()
+            .ToListAsync();
+
+        foreach (var customer in customers)
+        {
+            if (!dbCustomerArray.Exists(c => c.ExternalId == customer.ExternalId))
+            {
+                _context.Customers.Add(customer);
+            }
+            else
+            {
+                _context.Customers.Update(customer);
+            }
+        }
+        await _context.SaveChangesAsync();
+
+        List<Customer> invalidCustomers = [];
+
+        foreach (var customer in dbCustomerArray)
+        {
+            if (!customers.ToList().Exists(c => c.ExternalId == customer.ExternalId))
+            {
+                invalidCustomers.Add(customer);
+            }
+        }
+        if (invalidCustomers.Count > 0)
+        {
+            var validatedCustomers = await _context.Orders
+                .Select(o => o.CustomerId)
+                .ToListAsync();
+
+            foreach (var customerId in validatedCustomers)
+            {
+                var customerToBeRemoved = invalidCustomers.Find(c => c.ExternalId == customerId);
+                if (customerToBeRemoved != null)
+                {
+                    invalidCustomers.Remove(customerToBeRemoved);
+                }
+            }
+
+            if (invalidCustomers.Count > 0)
+            {
+                await _context.Customers
+                .Where(c => invalidCustomers.Contains(c))
+                .ExecuteDeleteAsync();
+            }
+        }
     }
 }

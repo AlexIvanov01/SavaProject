@@ -1,7 +1,10 @@
 using System;
+using System.IO;
 using CustomerService.AsyncDataServices;
 using CustomerService.DataAccess;
+using CustomerService.SyncDataServeces.Grpc;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +21,7 @@ builder.Services.AddDbContext<CustomerContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("Default"));
 });
 builder.Services.AddScoped<ICustomerRepo, CustomerRepo>();
+builder.Services.AddGrpc();
 builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -36,6 +40,12 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 
 app.MapControllers();
+app.MapGrpcService<GrpcCustomerService>();
+
+app.MapGet("/protos/customer.proto", async context =>
+{
+    await context.Response.WriteAsync(await File.ReadAllTextAsync("Protos/customer.proto"));
+});
 
 await PrepDB.PrepPopulation(app);
 

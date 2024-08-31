@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OrderService.SyncDataServices.Grpc;
+using System.Collections.Generic;
+using OrderService.Models;
 
 namespace OrderService.DataAccess;
 
@@ -13,11 +16,48 @@ public static class PrepDB
     {
         using (var serviceScope = app.ApplicationServices.CreateScope())
         {
-            await SeedData(serviceScope.ServiceProvider.GetService<OrderContext>());
+            await RunMigrations(serviceScope.ServiceProvider.GetService<OrderContext>());
+
+            var grpcInventoryClient = serviceScope.ServiceProvider.GetService<IInventoryDataClient>();
+            var grpcCustomerClient = serviceScope.ServiceProvider.GetService<ICustomerDataClient>();
+
+            var items = grpcInventoryClient.ReturnAllItems();
+            var customers = grpcCustomerClient.ReturnAllCustomers();
+
+            if (items != null)
+            {
+                await SyncItems(serviceScope.ServiceProvider.GetService<IItemRepo>(), items);
+            }
+            if (customers != null) 
+            {
+                await SyncCustomers(serviceScope.ServiceProvider.GetService<ICustomerRepo>(), customers);
+            }
         }
     }
 
-    private static async Task SeedData(OrderContext context)
+    public static async Task SyncCustomers(ICustomerRepo customerRepo, IEnumerable<Customer> customers)
+    {
+        Log.Information("--> Syncing customers...");
+        await customerRepo.SyncCustomersAsync(customers);
+        Log.Information("--> Custoemrs sync complete.");
+    }
+
+    private static async Task SyncItems(IItemRepo itemRepo, IEnumerable<Item> items)
+    {
+        try
+        {
+            Log.Information("--> Syncing items...");
+            await itemRepo.SyncItemsAsync(items);
+            Log.Information("--> Items sync complete.");
+            
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "--> An exeption occured while syncing: {Ex}", ex.Message);
+        }
+    }
+
+    private static async Task RunMigrations(OrderContext context)
     {
         Log.Information("--> Attempting to apply migrations...");
         try
@@ -30,18 +70,5 @@ public static class PrepDB
         {
             Log.Error(ex, "--> Could not run migrations: {Ex}", ex.Message);
         }
-
-        //if (!context.Orders.Any())
-        //{
-        //    Log.Information("--> Seeding data...");
-        //    string file = System.IO.File.ReadAllText("dummy_data.json");
-        //    var people = JsonSerializer.Deserialize<List<Order>>(file);
-        //    context.Orders.AddRange(people);
-        //    context.SaveChanges();
-        //}
-        //else
-        //{
-        //    Log.Information("--> Data is already present");
-        //}
     }
 }

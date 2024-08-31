@@ -13,5 +13,6 @@ public interface IItemRepo
     Task UpdateItemAsync(Item item);
     Task UpdateProductNameAsync(Guid? productId, string newProductName);
     Task DeleteItemsByProductIdAsync(Guid? productId);
+    Task SyncItemsAsync(IEnumerable<Item> items);
 }
 

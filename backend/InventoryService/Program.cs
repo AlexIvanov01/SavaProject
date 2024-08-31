@@ -1,8 +1,11 @@
 using System;
+using System.IO;
 using InventoryService.AsyncDataServices;
 using InventoryService.DataAccess;
 using InventoryService.EventProcessing;
+using InventoryService.SyncDataServices.Grpc;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +26,7 @@ builder.Services.AddDbContext<ProductContext>(options =>
 });
 builder.Services.AddScoped<IProductRepo, ProductRepo>();
 builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
+builder.Services.AddGrpc();
 builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -42,6 +46,12 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 
 app.MapControllers();
+app.MapGrpcService<GrpcInventoryService>();
+
+app.MapGet("/protos/inventory.proto", async context =>
+{
+    await context.Response.WriteAsync(await File.ReadAllTextAsync("Protos/inventory.proto"));
+});
 
 await PrepDB.PrepPopulation(app);
 

@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.65.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
@@ -17,10 +18,14 @@
     <PackageReference Include="MySql.EntityFrameworkCore" Version="8.0.5" />
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
+	
+	<ItemGroup>
+		<Protobuf Include="Protos\customer.proto" GrpcServices="Server" />
+	</ItemGroup>
 
   <ItemGroup>
     <Folder Include="logs\" />

@@ -40,7 +40,7 @@ public static class PrepDB
     {
         Log.Information("--> Syncing customers...");
         await customerRepo.SyncCustomersAsync(customers);
-        Log.Information("--> Custoemrs sync complete.");
+        Log.Information("--> Customers sync complete.");
     }
 
     public static async Task SyncItems(IItemRepo itemRepo, IEnumerable<Item> items)

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OrderService.DataAccess;
@@ -12,17 +13,26 @@ namespace OrderService.SyncDataServices.Grpc;
 public class GrpcSyncService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly TimeSpan _syncInterval = TimeSpan.FromMinutes(1);
+    private readonly IConfiguration _configuration;
 
-    public GrpcSyncService(IServiceProvider serviceProvider)
+    public GrpcSyncService(IServiceProvider serviceProvider, IConfiguration configuration)
     {
         _serviceProvider = serviceProvider;
+        _configuration = configuration;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        TimeSpan syncInterval;
+
+
         while (!stoppingToken.IsCancellationRequested)
         {
-            await Task.Delay(_syncInterval, stoppingToken);
+            syncInterval = TimeSpan.FromMinutes(double
+            .Parse(_configuration["GrpcSyncIntervalInMinutes"] ?? "5"));
+
+            Log.Information("Grpc Sync Interval In Minutes: {Minutes}", syncInterval);
+
+            await Task.Delay(syncInterval, stoppingToken);
             try
             {
                 using var serviceScope = _serviceProvider.CreateScope();

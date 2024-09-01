@@ -22,7 +22,7 @@ public class InventoryDataClient : IInventoryDataClient
 
     public IEnumerable<Item>? ReturnAllItems()
     {
-        Log.Information("--> Calling GRPC service {Service}", _configuration["GrpcInventoryService"]);
+        Log.Information("--> Calling inventory GRPC service {Service}", _configuration["GrpcInventoryService"]);
 
         var channel = GrpcChannel.ForAddress(_configuration["GrpcInventoryService"]);
         var client = new GrpcInventory.GrpcInventoryClient(channel);

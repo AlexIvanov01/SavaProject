@@ -14,24 +14,22 @@ public static class PrepDB
 {
     public static async Task PrepPopulation(IApplicationBuilder app)
     {
-        using (var serviceScope = app.ApplicationServices.CreateScope())
+        using var serviceScope = app.ApplicationServices.CreateScope();
+        await RunMigrations(serviceScope.ServiceProvider.GetService<OrderContext>());
+
+        var grpcInventoryClient = serviceScope.ServiceProvider.GetService<IInventoryDataClient>();
+        var grpcCustomerClient = serviceScope.ServiceProvider.GetService<ICustomerDataClient>();
+
+        var items = grpcInventoryClient.ReturnAllItems();
+        var customers = grpcCustomerClient.ReturnAllCustomers();
+
+        if (items != null)
         {
-            await RunMigrations(serviceScope.ServiceProvider.GetService<OrderContext>());
-
-            var grpcInventoryClient = serviceScope.ServiceProvider.GetService<IInventoryDataClient>();
-            var grpcCustomerClient = serviceScope.ServiceProvider.GetService<ICustomerDataClient>();
-
-            var items = grpcInventoryClient.ReturnAllItems();
-            var customers = grpcCustomerClient.ReturnAllCustomers();
-
-            if (items != null)
-            {
-                await SyncItems(serviceScope.ServiceProvider.GetService<IItemRepo>(), items);
-            }
-            if (customers != null) 
-            {
-                await SyncCustomers(serviceScope.ServiceProvider.GetService<ICustomerRepo>(), customers);
-            }
+            await SyncItems(serviceScope.ServiceProvider.GetService<IItemRepo>(), items);
+        }
+        if (customers != null)
+        {
+            await SyncCustomers(serviceScope.ServiceProvider.GetService<ICustomerRepo>(), customers);
         }
     }
 
@@ -42,7 +40,7 @@ public static class PrepDB
         Log.Information("--> Custoemrs sync complete.");
     }
 
-    private static async Task SyncItems(IItemRepo itemRepo, IEnumerable<Item> items)
+    public static async Task SyncItems(IItemRepo itemRepo, IEnumerable<Item> items)
     {
         try
         {
@@ -53,7 +51,7 @@ public static class PrepDB
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "--> An exeption occured while syncing: {Ex}", ex.Message);
+            Log.Error(ex, "--> An error occured while syncing: {Ex}", ex.Message);
         }
     }
 

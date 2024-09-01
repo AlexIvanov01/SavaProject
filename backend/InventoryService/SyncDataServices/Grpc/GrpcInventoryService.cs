@@ -16,9 +16,9 @@ public class GrpcInventoryService : GrpcInventory.GrpcInventoryBase
         _mapper = mapper;
     }
 
-    public override async Task<InventoryRespone> GetAllItems(GetAllRequest request, ServerCallContext context)
+    public override async Task<InventoryResponse> GetAllItems(GetAllRequest request, ServerCallContext context)
     {
-        var response = new InventoryRespone();
+        var response = new InventoryResponse();
 
         var products = await _repository.GetAllProductBatchesAsync();
 

@@ -21,7 +21,7 @@ public class CustomerDataClient : ICustomerDataClient
 
     public IEnumerable<Customer>? ReturnAllCustomers()
     {
-        Log.Information("--> Calling GRPC service {Service}", _configuration["GrpcCustomerService"]);
+        Log.Information("--> Calling customer GRPC service {Service}", _configuration["GrpcCustomerService"]);
 
         var channel = GrpcChannel.ForAddress(_configuration["GrpcCustomerService"]);
         var client = new GrpcCustomer.GrpcCustomerClient(channel);

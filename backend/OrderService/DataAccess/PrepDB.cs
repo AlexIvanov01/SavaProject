@@ -20,6 +20,9 @@ public static class PrepDB
         var grpcInventoryClient = serviceScope.ServiceProvider.GetService<IInventoryDataClient>();
         var grpcCustomerClient = serviceScope.ServiceProvider.GetService<ICustomerDataClient>();
 
+        Log.Information("--> Waiting 5 seconds for Inventoy and Customer Service initalization...");
+        await Task.Delay(5000);
+
         var items = grpcInventoryClient.ReturnAllItems();
         var customers = grpcCustomerClient.ReturnAllCustomers();
 
@@ -60,7 +63,7 @@ public static class PrepDB
         Log.Information("--> Attempting to apply migrations...");
         try
         {
-            Log.Information("--> Waiting 5 seconds for DB iniialization...");
+            Log.Information("--> Waiting 5 seconds for DB initalization...");
             await Task.Delay(5000);
             await context.Database.MigrateAsync();
         }
